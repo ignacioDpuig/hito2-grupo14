@@ -15,7 +15,7 @@
         </div>
     </div>
 
-    <div th:replace="~{fragments/recibo :: recibo(${recibo})}"></div>
+    <div th:replace="~{fragments/recibo :: recibo(${recibo}, @{/responsable/sueldos/{id}/pdf(id=${recibo.empleadoId})})}"></div>
 </div>
 </body>
 </html>

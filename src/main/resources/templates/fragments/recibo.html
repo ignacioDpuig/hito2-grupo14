@@ -2,10 +2,10 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <body>
 <!--
-  Recibo de haberes en pantalla.
-  Uso: <div th:replace="~{fragments/recibo :: recibo(${recibo})}"></div>
+  Recibo de haberes en pantalla, con el mismo contenido que el PDF.
+  Uso: <div th:replace="~{fragments/recibo :: recibo(${recibo}, @{/url/del/pdf})}"></div>
 -->
-<div th:fragment="recibo(r)" class="card recibo">
+<div th:fragment="recibo(r, urlPdf)" class="card recibo">
     <div class="recibo-encabezado">
         <div>
             <small>RECIBO DE HABERES</small>
@@ -59,6 +59,10 @@
         <p class="subtitulo recibo-nota" th:if="${r.dadoDeBaja}">
             El empleado fue dado de baja en la unidad: se liquida lo trabajado en el festival.
         </p>
+
+        <div class="form-buttons">
+            <a th:href="${urlPdf}" class="btn btn-primario"><svg class="icono"><use href="#i-download"/></svg> Descargar PDF</a>
+        </div>
     </div>
 </div>
 </body>

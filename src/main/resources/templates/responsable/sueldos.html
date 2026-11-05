@@ -49,6 +49,7 @@
                 <td class="monto"><strong><span th:replace="~{fragments/layout :: monto(${l.totalNeto})}"></span></strong></td>
                 <td class="acciones">
                     <a th:href="@{/responsable/sueldos/{id}(id=${l.empleadoId})}" class="btn btn-sm btn-suave">Ver recibo</a>
+                    <a th:href="@{/responsable/sueldos/{id}/pdf(id=${l.empleadoId})}" class="btn btn-sm btn-suave"><svg class="icono"><use href="#i-download"/></svg> PDF</a>
                 </td>
             </tr>
             <tr class="total">

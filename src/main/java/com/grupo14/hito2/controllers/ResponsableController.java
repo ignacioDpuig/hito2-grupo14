@@ -5,14 +5,17 @@ import com.grupo14.hito2.dtos.CrearEmpleadoDTO;
 import com.grupo14.hito2.dtos.EditarEmpleadoDTO;
 import com.grupo14.hito2.dtos.EditarUnidadVentaDTO;
 import com.grupo14.hito2.dtos.FiltroEmpleadosDTO;
+import com.grupo14.hito2.dtos.LiquidacionDTO;
 import com.grupo14.hito2.entities.UnidadVenta;
 import com.grupo14.hito2.services.LiquidacionService;
+import com.grupo14.hito2.services.PDFService;
 import com.grupo14.hito2.services.EmpleadoService;
 import com.grupo14.hito2.services.UnidadVentaService;
 import com.grupo14.hito2.exceptions.ReglaDeNegocioException;
 import jakarta.validation.Valid;
 import org.springframework.validation.BindingResult;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -22,6 +25,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.io.IOException;
+
 // Todas las operaciones son sobre la unidad del responsable logueado, que resuelve @UnidadDelResponsable
 @Controller
 @RequestMapping("/responsable")
@@ -30,6 +35,7 @@ public class ResponsableController {
 
     private final EmpleadoService empleadoService;
     private final LiquidacionService liquidacionService;
+    private final PDFService pdfService;
     private final UnidadVentaService unidadVentaService;
 
     // Inicio con los números de la unidad de un vistazo
@@ -142,5 +148,11 @@ public class ResponsableController {
         model.addAttribute("recibo",
                 liquidacionService.calcularLiquidacionDeEmpleadoDeLaUnidad(unidad, empleadoId));
         return "responsable/recibo";
+    }
+
+    @GetMapping("/sueldos/{empleadoId}/pdf")
+    public ResponseEntity<byte[]> descargarRecibo(@PathVariable Long empleadoId, @UnidadDelResponsable UnidadVenta unidad) throws IOException {
+        LiquidacionDTO recibo = liquidacionService.calcularLiquidacionDeEmpleadoDeLaUnidad(unidad, empleadoId);
+        return DescargaPdf.de(pdfService.generarReciboPDF(recibo), "recibo_" + recibo.getDni() + ".pdf");
     }
 }
