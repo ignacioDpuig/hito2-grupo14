@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Unidades de venta')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: menu('admin')}"></th:block>
+
+<div class="container">
+    <div class="header">
+        <h1><svg class="icono"><use href="#i-store"/></svg> Unidades de <span th:text="${festival.nombre}">Festival</span></h1>
+        <p>
+            <span th:text="${festival.temporada}">Temporada</span> ·
+            del <span th:text="${#temporals.format(festival.fechaInicio, 'dd/MM/yyyy')}">01/01/2025</span>
+            al <span th:text="${#temporals.format(festival.fechaFin, 'dd/MM/yyyy')}">31/01/2025</span>
+        </p>
+    </div>
+
+    <p th:if="${#lists.isEmpty(unidades)}" class="alert alert-info">Este festival todavía no tiene unidades de venta.</p>
+
+    <div class="tabla-scroll" th:unless="${#lists.isEmpty(unidades)}">
+        <table>
+            <thead>
+            <tr>
+                <th>Nombre comercial</th>
+                <th>Código</th>
+                <th>Tipo</th>
+                <th class="monto">Superficie</th>
+                <th>Responsable</th>
+                <th class="monto">Personal</th>
+                <th>Estado</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="unidad : ${unidades}">
+                <td th:text="${unidad.nombreComercial}">Food Truck</td>
+                <td><span class="badge" th:text="${unidad.codigo}">FT00000001</span></td>
+                <td th:text="${unidad.tipoDescripcion}">FoodTruck</td>
+                <td class="monto" th:text="${#numbers.formatDecimal(unidad.superficie, 1, 'POINT', 1, 'COMMA')} + ' m²'">25,5 m²</td>
+                <td th:text="${unidad.responsable.nombre + ' ' + unidad.responsable.apellido}">Responsable</td>
+                <td class="monto" th:text="${unidad.cantidadStaffActivo}">0</td>
+                <td>
+                    <span th:if="${unidad.activa}" class="badge badge-ok">Activa</span>
+                    <span th:unless="${unidad.activa}" class="badge badge-baja" title="El responsable todavía no activó su cuenta">Pendiente</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
