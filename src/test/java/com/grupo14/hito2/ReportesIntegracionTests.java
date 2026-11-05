@@ -87,6 +87,12 @@ class ReportesIntegracionTests {
     }
 
     @Test
+    void empleadoTrabajaEnSuUnidad() {
+        long carlosId = cuentaService.buscarPorEmail("carlos@email.com").getId();
+        assertThat(unidadVentaService.buscarPorStaff(carlosId).getCodigo()).isEqualTo("FTSDELSUR1");
+    }
+
+    @Test
     void noSePuedeEditarUnPlatoDeOtraUnidad() {
         UnidadVenta otraUnidad = unidadDe("responsable@responsable");
         long margheritaId = platoService.obtenerTodosLosPlatosPorUnidad(
@@ -184,6 +190,14 @@ class ReportesIntegracionTests {
         assertThatThrownBy(() -> unidadVentaService.modificarUnidad(unidadDe("juan@email.com"), dto))
                 .isInstanceOf(ReglaDeNegocioException.class)
                 .hasMessageContaining("patente");
+    }
+
+    @Test
+    void empleadoSinFestivalEnCurso() {
+        long carlosId = cuentaService.buscarPorEmail("carlos@email.com").getId();
+        assertThat(unidadVentaService.obtenerUnidadEnFestivalEnCurso(carlosId)).isEmpty();
+        assertThatThrownBy(() -> unidadVentaService.buscarUnidadEnFestivalEnCurso(carlosId))
+                .isInstanceOf(NoEncontradoException.class);
     }
 
     @Test
@@ -462,6 +476,16 @@ class ReportesIntegracionTests {
         assertThatThrownBy(() -> liquidacionService.calcularLiquidacion("carlos@email.com", festivalPrimaveraId))
                 .isInstanceOf(NoEncontradoException.class)
                 .hasMessageContaining("No trabajaste");
+    }
+
+    @Test
+    void elEmpleadoSinFestivalEnCursoNoTieneUnidadParaVender() {
+        long carlosId = cuentaService.buscarPorEmail("carlos@email.com").getId();
+        long cajeroId = cuentaService.buscarPorEmail("cajero@cajero").getId();
+
+        assertThatThrownBy(() -> unidadVentaService.buscarUnidadEnFestivalEnCurso(carlosId))
+                .isInstanceOf(NoEncontradoException.class);
+        assertThat(unidadVentaService.buscarUnidadEnFestivalEnCurso(cajeroId).getCodigo()).isEqualTo("FTPRIMAV26");
     }
 
     private UnidadVenta unidadDe(String emailResponsable) {
