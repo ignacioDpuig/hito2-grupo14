@@ -26,6 +26,7 @@
                 <th class="monto">Costo de producción</th>
                 <th class="monto">Precio de venta</th>
                 <th>Estado</th>
+                <th>Acciones</th>
             </tr>
             </thead>
             <tbody>
@@ -36,6 +37,19 @@
                 <td>
                     <span th:if="${plato.eliminado}" class="estado-baja"><svg class="icono"><use href="#i-x"/></svg> Dado de baja</span>
                     <span th:unless="${plato.eliminado}" class="estado-ok"><svg class="icono"><use href="#i-check"/></svg> Activo</span>
+                </td>
+                <td class="acciones">
+                    <a th:if="${!plato.eliminado}" th:href="@{/responsable/platos/{id}/editar(id=${plato.id})}"
+                       class="btn btn-sm btn-suave">Editar</a>
+                    <form th:if="${!plato.eliminado}" method="post"
+                          th:action="@{/responsable/platos/{id}/eliminar(id=${plato.id})}"
+                          onsubmit="return confirm('¿Dar de baja este plato?')">
+                        <button type="submit" class="btn btn-sm btn-danger">Dar de baja</button>
+                    </form>
+                    <form th:if="${plato.eliminado}" method="post"
+                          th:action="@{/responsable/platos/{id}/reactivar(id=${plato.id})}">
+                        <button type="submit" class="btn btn-sm btn-warning">Reactivar</button>
+                    </form>
                 </td>
             </tr>
             </tbody>
