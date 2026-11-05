@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Iniciar sesión')}"></head>
+<body>
+<svg th:replace="~{fragments/iconos :: sprite}"></svg>
+<main class="auth-page">
+    <div class="auth-card">
+        <a class="marca" th:href="@{/}"><span class="marca-logo"><svg class="icono"><use href="#i-utensils"/></svg></span> Epicentro Gourmet</a>
+        <h1>Iniciar sesión</h1>
+        <p class="subtitulo">Ingresá con tu email y tu contraseña</p>
+
+        <div th:if="${param.error}" class="alert alert-danger" role="alert">
+            <svg class="icono"><use href="#i-alert"/></svg>
+            <span>Email o contraseña incorrectos, o tu usuario está dado de baja.</span>
+        </div>
+        <div th:if="${param.sesionCerrada}" class="alert alert-danger" role="alert">
+            <svg class="icono"><use href="#i-lock"/></svg>
+            <span>Tu sesión se cerró: cambiaron tus datos de acceso o ya no trabajás en ninguna unidad.</span>
+        </div>
+        <div th:if="${param.logout}" class="alert alert-success" role="status">
+            <svg class="icono"><use href="#i-check"/></svg>
+            <span>Cerraste la sesión.</span>
+        </div>
+
+        <form th:action="@{/loginprocess}" method="post">
+            <div class="form-group">
+                <label for="username">Email</label>
+                <input type="email" id="username" name="username" autocomplete="username" placeholder="nombre@email.com" required autofocus>
+            </div>
+            <div class="form-group">
+                <label for="password">Contraseña</label>
+                <input type="password" id="password" name="password" autocomplete="current-password" required>
+            </div>
+            <button type="submit" class="btn btn-primario btn-bloque">Ingresar <svg class="icono"><use href="#i-arrow-right"/></svg></button>
+        </form>
+        <p class="auth-pie">Si es tu primera vez, usá la contraseña temporal que te llegó por mail.</p>
+    </div>
+</main>
+</body>
+</html>
