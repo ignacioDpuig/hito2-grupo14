@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mayor canon')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: menu('admin')}"></th:block>
+
+<div class="container">
+    <div class="header">
+        <h1><svg class="icono"><use href="#i-coins"/></svg> Unidades con mayor canon</h1>
+        <p>Las unidades habilitadas de un festival que más pagan de canon</p>
+    </div>
+
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+    <form th:action="@{/admin/canon-reporte}" method="get" class="filtros">
+        <div class="form-group">
+            <label for="festivalId">Festival</label>
+            <select id="festivalId" name="festivalId" required>
+                <option value="">Seleccionar festival</option>
+                <option th:each="f : ${festivales}" th:value="${f.id}" th:text="${f.nombre}"
+                        th:selected="${f.id == festivalSeleccionado}"></option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="top">Cantidad</label>
+            <input type="number" id="top" name="top" th:value="${top != null ? top : 3}" min="1" max="20" class="campo-corto">
+        </div>
+        <button type="submit" class="btn btn-primario">Ver reporte</button>
+    </form>
+
+    <p th:if="${reporte != null and #lists.isEmpty(reporte)}" class="alert alert-info">Este festival no tiene unidades habilitadas (las pendientes de activación no se incluyen).</p>
+
+    <div class="tabla-scroll" th:if="${reporte != null and !#lists.isEmpty(reporte)}">
+        <table>
+            <thead>
+            <tr>
+                <th>#</th>
+                <th>Nombre comercial</th>
+                <th>Código</th>
+                <th>Tipo</th>
+                <th class="monto">Canon</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="u, stat : ${reporte}">
+                <td th:text="${stat.count}">1</td>
+                <td th:text="${u.nombreComercial}">Unidad</td>
+                <td th:text="${u.codigo}">Código</td>
+                <td th:text="${u.tipoUnidad}">Tipo</td>
+                <td class="monto"><span th:replace="~{fragments/layout :: monto(${u.canon})}"></span></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
