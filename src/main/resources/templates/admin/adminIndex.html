@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Festivales')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: menu('admin')}"></th:block>
+
+<div class="container">
+    <div class="header">
+        <div>
+            <h1><svg class="icono"><use href="#i-tent"/></svg> Festivales</h1>
+            <p>Festivales del predio y sus unidades de venta</p>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <div class="stat-grid">
+        <div class="stat">
+            <span class="stat-etiqueta"><svg class="icono"><use href="#i-tent"/></svg> Festivales</span>
+            <span class="stat-valor" th:text="${resumen.festivales}">3</span>
+            <span class="stat-detalle" th:text="${resumen.festivalesEnCurso} + ' en curso'">1 en curso</span>
+        </div>
+        <div class="stat">
+            <span class="stat-etiqueta"><svg class="icono"><use href="#i-store"/></svg> Unidades de venta</span>
+            <span class="stat-valor" th:text="${resumen.unidades}">4</span>
+            <span class="stat-detalle">En todos los festivales</span>
+        </div>
+        <div class="stat">
+            <span class="stat-etiqueta"><svg class="icono"><use href="#i-clock"/></svg> Pendientes de activación</span>
+            <span class="stat-valor" th:text="${resumen.unidadesPendientes}">1</span>
+            <span class="stat-detalle">Su responsable todavía no eligió contraseña</span>
+        </div>
+    </div>
+
+    <div th:if="${#lists.isEmpty(festivales)}" class="vacio">
+        <span class="vacio-icono"><svg class="icono"><use href="#i-tent"/></svg></span>
+        <p>No hay festivales cargados.</p>
+    </div>
+
+    <div class="card-grid" th:with="hoy=${#temporals.createToday()}">
+        <div th:each="festival : ${festivales}" class="card card-menu">
+            <div class="chips">
+                <span th:if="${festival.estaEnCurso(hoy)}" class="chip chip-ok">● En curso</span>
+                <span th:if="${festival.fechaInicio.isAfter(hoy)}" class="chip chip-info">Próximo</span>
+                <span th:if="${festival.terminoAntesDe(hoy)}" class="chip">Finalizado</span>
+            </div>
+            <h2 th:text="${festival.nombre}">Festival</h2>
+            <p>
+                <span class="festival-dato"><svg class="icono"><use href="#i-calendar"/></svg>
+                    <span th:text="${#temporals.format(festival.fechaInicio, 'dd/MM/yyyy')} + ' al ' + ${#temporals.format(festival.fechaFin, 'dd/MM/yyyy')}">fechas</span></span>
+                <span class="festival-dato"><svg class="icono"><use href="#i-store"/></svg>
+                    <span th:text="${festival.unidades.size()} + (${festival.unidades.size() == 1} ? ' unidad · ' : ' unidades · ') + ${festival.temporada}">0 unidades</span></span>
+            </p>
+            <a th:href="@{/admin/unidades/{id}(id=${festival.id})}" class="btn btn-suave">Ver unidades <svg class="icono"><use href="#i-arrow-right"/></svg></a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

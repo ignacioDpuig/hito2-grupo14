@@ -40,6 +40,11 @@
         </a>
 
         <nav class="menu">
+            <th:block th:if="${seccion == 'admin'}">
+                <span class="menu-titulo">Predio</span>
+                <a th:href="@{/admin/festivales}" th:classappend="${ruta.startsWith('/admin/festivales') or ruta.startsWith('/admin/unidades/')} ? 'activo'">
+                    <svg class="icono"><use href="#i-tent"/></svg> Festivales</a>
+            </th:block>
         </nav>
 
         <div class="sidebar-pie">

@@ -1,10 +1,18 @@
 package com.grupo14.hito2;
 
+import com.grupo14.hito2.entities.Festival;
+import com.grupo14.hito2.entities.UnidadVenta;
+import com.grupo14.hito2.services.CuentaService;
+import com.grupo14.hito2.services.FestivalService;
+import com.grupo14.hito2.services.UnidadVentaService;
 import com.grupo14.hito2.services.UsuarioDetailsService;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.time.LocalDate;
+import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -13,11 +21,55 @@ import static org.assertj.core.api.Assertions.assertThat;
 @Transactional
 class DatosDePruebaTests {
 
+    private static final long FESTIVAL_DE_OTONIO = 3;
+
+    @Autowired
+    private CuentaService cuentaService;
+
+    @Autowired
+    private FestivalService festivalService;
+    @Autowired
+    private UnidadVentaService unidadVentaService;
     @Autowired
     private UsuarioDetailsService usuarioDetailsService;
 
     @Test
     void laCajeraDadaDeBajaNoEntra() {
         assertThat(usuarioDetailsService.loadUserByUsername("rocio@email.com").isEnabled()).isFalse();
+
+    }
+
+    @Test
+    void elFestivalDeOtonoEsHistoricoYSusUnidadesTienenReportes() {
+        List<UnidadVenta> unidades = unidadVentaService.obtenerUnidadesPorFestival(FESTIVAL_DE_OTONIO);
+
+        assertThat(unidades).hasSize(5)
+                .anySatisfy(u -> assertThat(u.getNombreComercial()).isEqualTo("Puesto Sabores Andinos"))
+                .allSatisfy(u -> {
+                    assertThat(u.isActiva()).isTrue();
+                    assertThat(u.getFestival().getFechaInicio()).isEqualTo(LocalDate.of(2025, 4, 1));
+                    assertThat(u.getFestival().getFechaFin()).isEqualTo(LocalDate.of(2025, 4, 16));
+                });
+        assertThat(usuarioDetailsService.loadUserByUsername("pablo@email.com").isEnabled()).isTrue();
+        assertThat(cuentaService.buscarPorEmail("pablo@email.com").isEstaActivo()).isTrue();
+    }
+
+    @Test
+    void cadaFestivalDePruebaTieneCincoUnidadesConRentabilidadPositiva() {
+        for (long festivalId : new long[]{1, 2, FESTIVAL_DE_OTONIO}) {
+            List<UnidadVenta> unidades = unidadVentaService.obtenerUnidadesPorFestival(festivalId);
+            assertThat(unidades).as("festival %s", festivalId).hasSize(5);
+        }
+    }
+
+    // data.sql no pasa por Bean Validation: el formato del código se controla acá
+    @Test
+    void todosLosCodigosCargadosTienenElFormatoDelEnunciado() {
+        for (Festival festival : festivalService.obtenerTodosFestivales()) {
+            for (UnidadVenta unidad : unidadVentaService.obtenerUnidadesPorFestival(festival.getId())) {
+                String prefijo = unidad.getTipo().equals("FoodTruck") ? "FT" : "PD";
+                assertThat(unidad.getCodigo()).matches(prefijo + "[A-Z0-9]{8}");
+            }
+        }
     }
 }

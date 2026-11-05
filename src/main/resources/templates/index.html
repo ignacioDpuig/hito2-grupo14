@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Festivales')}"></head>
+<body>
+<svg th:replace="~{fragments/iconos :: sprite}"></svg>
+<section class="hero">
+    <div class="publica-barra">
+        <span class="marca"><span class="marca-logo"><svg class="icono"><use href="#i-utensils"/></svg></span> Epicentro Gourmet</span>
+        <a th:href="@{/login}" class="btn btn-claro btn-sm">Iniciar sesión</a>
+    </div>
+    <div class="hero-contenido">
+        <h1>Los festivales gastronómicos del predio, en un solo lugar</h1>
+        <p>Food trucks, puestos y lo mejor de cada temporada. Las unidades de venta gestionan su personal, su menú y sus números.</p>
+    </div>
+</section>
+
+<div class="container" th:with="hoy=${#temporals.createToday()}">
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <div th:if="${#lists.isEmpty(festivales)}" class="vacio">
+        <span class="vacio-icono"><svg class="icono"><use href="#i-tent"/></svg></span>
+        <p>Todavía no hay festivales programados.</p>
+    </div>
+
+    <div class="card-grid">
+        <div class="card festival" th:each="f : ${festivales}">
+            <div class="chips">
+                <span th:if="${f.estaEnCurso(hoy)}" class="chip chip-ok">● En curso</span>
+                <span th:if="${f.fechaInicio.isAfter(hoy)}" class="chip chip-info">Próximo</span>
+                <span th:if="${f.terminoAntesDe(hoy)}" class="chip">Finalizado</span>
+            </div>
+            <h2 th:text="${f.nombre}">Festival</h2>
+            <span class="festival-dato"><svg class="icono"><use href="#i-calendar"/></svg>
+                <span th:text="${#temporals.format(f.fechaInicio, 'dd/MM/yyyy')} + ' al ' + ${#temporals.format(f.fechaFin, 'dd/MM/yyyy')}">01/01 al 31/01</span></span>
+            <span class="festival-dato"><svg class="icono"><use href="#i-clock"/></svg>
+                <span th:text="${f.diasDuracion} + ' días · ' + ${f.temporada}">10 días</span></span>
+        </div>
+    </div>
+</div>
+</body>
+</html>
