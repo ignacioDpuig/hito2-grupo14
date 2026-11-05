@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Platos')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: menu('responsable')}"></th:block>
+
+<div class="container">
+    <div class="header">
+        <div>
+            <h1><svg class="icono"><use href="#i-utensils"/></svg> Gestión de Platos</h1>
+            <p>Menú de tu unidad: los platos dados de baja no se ofrecen en nuevos pedidos</p>
+        </div>
+        <div class="actions">
+            <a th:href="@{/responsable/platos/crear}" class="btn btn-primario"><svg class="icono"><use href="#i-plus"/></svg> Agregar plato</a>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <p th:if="${#lists.isEmpty(platos)}" class="alert alert-info">Tu unidad todavía no tiene platos.</p>
+
+    <div class="tabla-scroll" th:unless="${#lists.isEmpty(platos)}">
+        <table>
+            <thead>
+            <tr>
+                <th>Nombre</th>
+                <th class="monto">Costo de producción</th>
+                <th class="monto">Precio de venta</th>
+                <th>Estado</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="plato : ${platos}" th:classappend="${plato.eliminado} ? 'eliminado' : ''">
+                <td th:text="${plato.nombre}">Pizza</td>
+                <td class="monto"><span th:replace="~{fragments/layout :: monto(${plato.costoProduccion})}"></span></td>
+                <td class="monto"><span th:replace="~{fragments/layout :: monto(${plato.precioVenta})}"></span></td>
+                <td>
+                    <span th:if="${plato.eliminado}" class="estado-baja"><svg class="icono"><use href="#i-x"/></svg> Dado de baja</span>
+                    <span th:unless="${plato.eliminado}" class="estado-ok"><svg class="icono"><use href="#i-check"/></svg> Activo</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

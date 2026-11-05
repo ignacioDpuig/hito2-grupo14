@@ -57,6 +57,8 @@
                     <svg class="icono"><use href="#i-store"/></svg> Datos de la unidad</a>
                 <a th:href="@{/responsable/empleados}" th:classappend="${ruta.startsWith('/responsable/empleados')} ? 'activo'">
                     <svg class="icono"><use href="#i-users"/></svg> Empleados</a>
+                <a th:href="@{/responsable/platos}" th:classappend="${ruta.startsWith('/responsable/platos')} ? 'activo'">
+                    <svg class="icono"><use href="#i-utensils"/></svg> Platos</a>
                 <span class="menu-titulo">Números</span>
                 <a th:href="@{/responsable/sueldos}" th:classappend="${ruta.startsWith('/responsable/sueldos')} ? 'activo'">
                     <svg class="icono"><use href="#i-wallet"/></svg> Sueldos</a>

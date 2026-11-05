@@ -2,6 +2,7 @@ package com.grupo14.hito2.controllers;
 
 import com.grupo14.hito2.configuration.UnidadDelResponsable;
 import com.grupo14.hito2.dtos.CrearEmpleadoDTO;
+import com.grupo14.hito2.dtos.CrearPlatoDTO;
 import com.grupo14.hito2.dtos.EditarEmpleadoDTO;
 import com.grupo14.hito2.dtos.EditarUnidadVentaDTO;
 import com.grupo14.hito2.dtos.FiltroEmpleadosDTO;
@@ -10,6 +11,7 @@ import com.grupo14.hito2.entities.UnidadVenta;
 import com.grupo14.hito2.services.LiquidacionService;
 import com.grupo14.hito2.services.PDFService;
 import com.grupo14.hito2.services.EmpleadoService;
+import com.grupo14.hito2.services.PlatoService;
 import com.grupo14.hito2.services.UnidadVentaService;
 import com.grupo14.hito2.exceptions.ReglaDeNegocioException;
 import jakarta.validation.Valid;
@@ -34,6 +36,7 @@ import java.io.IOException;
 public class ResponsableController {
 
     private final EmpleadoService empleadoService;
+    private final PlatoService platoService;
     private final LiquidacionService liquidacionService;
     private final PDFService pdfService;
     private final UnidadVentaService unidadVentaService;
@@ -43,6 +46,7 @@ public class ResponsableController {
     public String dashboard(Model model, @UnidadDelResponsable UnidadVenta unidad) {
         model.addAttribute("unidad", unidad);
         model.addAttribute("empleadosActivos", empleadoService.obtenerEmpleados(unidad, new FiltroEmpleadosDTO()).size());
+        model.addAttribute("platosActivos", platoService.obtenerPlatosActivosPorUnidad(unidad.getId()).size());
         return "responsable/responsableIndex";
     }
 
@@ -133,6 +137,35 @@ public class ResponsableController {
             redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());
         }
         return "redirect:/responsable/empleados";
+    }
+
+    // ─── Platos ───────────────────────────────────────────────────────────────
+
+    @GetMapping("/platos")
+    public String verPlatos(Model model, @UnidadDelResponsable UnidadVenta unidad) {
+        model.addAttribute("platos", platoService.obtenerTodosLosPlatosPorUnidad(unidad.getId()));
+        return "responsable/platos";
+    }
+
+    @GetMapping("/platos/crear")
+    public String formularioCrearPlato(Model model) {
+        model.addAttribute("crearPlatoDTO", new CrearPlatoDTO());
+        return "responsable/crear-plato";
+    }
+
+    @PostMapping("/platos/crear")
+    public String crearPlato(@Valid @ModelAttribute("crearPlatoDTO") CrearPlatoDTO dto, BindingResult result,
+                             @UnidadDelResponsable UnidadVenta unidad, Model model, RedirectAttributes redirectAttributes) {
+        if (!result.hasErrors()) {
+            try {
+                platoService.crearPlato(dto, unidad);
+                redirectAttributes.addFlashAttribute("mensaje", "Plato creado correctamente");
+                return "redirect:/responsable/platos";
+            } catch (ReglaDeNegocioException e) {
+                model.addAttribute("error", "No se pudo crear el plato: " + e.getMessage());
+            }
+        }
+        return "responsable/crear-plato";
     }
 
     // ─── Sueldos ──────────────────────────────────────────────────────────────
