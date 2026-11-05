@@ -2,6 +2,7 @@ package com.grupo14.hito2.controllers;
 
 import com.grupo14.hito2.services.FestivalService;
 import com.grupo14.hito2.services.UnidadVentaService;
+import com.grupo14.hito2.exceptions.ReglaDeNegocioException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,5 +29,23 @@ public class AdminController {
         model.addAttribute("festival", festivalService.buscarPorId(festivalId));
         model.addAttribute("unidades", unidadVentaService.obtenerUnidadesPorFestival(festivalId));
         return "admin/unidades";
+    }
+
+    @GetMapping("/canon-reporte")
+    public String verCanonReporte(
+            @RequestParam(required = false) Long festivalId,
+            @RequestParam(defaultValue = "3") int top,
+            Model model) {
+        model.addAttribute("festivales", festivalService.obtenerTodosFestivales());
+        model.addAttribute("top", top);
+        if (festivalId != null) {
+            model.addAttribute("festivalSeleccionado", festivalId);
+            try {
+                model.addAttribute("reporte", unidadVentaService.obtenerMayoresCanon(festivalId, top));
+            } catch (ReglaDeNegocioException e) {
+                model.addAttribute("error", e.getMessage());
+            }
+        }
+        return "admin/canon-reporte";
     }
 }
