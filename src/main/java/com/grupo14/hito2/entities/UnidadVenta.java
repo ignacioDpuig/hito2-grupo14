@@ -122,4 +122,8 @@ public abstract class UnidadVenta {
         return buscarEnStaff(personal)
                 .orElseThrow(() -> new ReglaDeNegocioException(personal.getNombre() + " no es parte de " + nombreComercial));
     }
+
+    public boolean ofrece(Plato plato) {
+        return plato.getUnidadVenta() != null && plato.getUnidadVenta().getId().equals(id);
+    }
 }
