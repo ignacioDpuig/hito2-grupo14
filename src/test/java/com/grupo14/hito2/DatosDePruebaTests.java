@@ -2,6 +2,7 @@ package com.grupo14.hito2;
 
 import com.grupo14.hito2.dtos.FiltroEmpleadosDTO;
 import com.grupo14.hito2.entities.Festival;
+import com.grupo14.hito2.entities.Personal;
 import com.grupo14.hito2.entities.UnidadVenta;
 import com.grupo14.hito2.services.CuentaService;
 import com.grupo14.hito2.services.EmpleadoService;
@@ -52,6 +53,23 @@ class DatosDePruebaTests {
 
         assertThat(empleadoService.obtenerEmpleados(unidadDe("responsable@responsable"), new FiltroEmpleadosDTO()))
                 .noneMatch(e -> e.empleado().getEmail().equals("rocio@email.com"));
+    }
+
+    @Test
+    void bajaDeEmpleadoLoOcultaEnTodasLasUnidadesSinPerderSuHistorial() {
+        Personal martin = cuentaService.buscarPorEmail("martin@email.com");
+        long martinId = martin.getId();
+        List<UnidadVenta> historial = unidadVentaService.obtenerHistorial(martinId);
+        assertThat(historial).hasSize(2);
+
+        empleadoService.darDeBajaEmpleado(martinId, historial.get(0));
+
+        assertThat(usuarioDetailsService.loadUserByUsername(martin.getEmail()).isEnabled()).isFalse();
+        for (UnidadVenta unidad : historial) {
+            assertThat(empleadoService.obtenerEmpleados(unidad, new FiltroEmpleadosDTO()))
+                    .noneMatch(item -> item.empleado().getId().equals(martinId));
+        }
+        assertThat(unidadVentaService.obtenerHistorial(martinId)).hasSize(2);
     }
 
     @Test

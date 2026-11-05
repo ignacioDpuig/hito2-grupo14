@@ -2,6 +2,7 @@ package com.grupo14.hito2.controllers;
 
 import com.grupo14.hito2.configuration.UnidadDelResponsable;
 import com.grupo14.hito2.dtos.CrearEmpleadoDTO;
+import com.grupo14.hito2.dtos.EditarEmpleadoDTO;
 import com.grupo14.hito2.dtos.EditarUnidadVentaDTO;
 import com.grupo14.hito2.dtos.FiltroEmpleadosDTO;
 import com.grupo14.hito2.entities.UnidadVenta;
@@ -15,6 +16,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
@@ -88,5 +90,40 @@ public class ResponsableController {
             }
         }
         return "responsable/crear-empleado";
+    }
+
+    @GetMapping("/empleados/{id}/editar")
+    public String formularioEditarEmpleado(@PathVariable Long id, Model model, @UnidadDelResponsable UnidadVenta unidad) {
+        model.addAttribute("empleadoId", id);
+        model.addAttribute("editarEmpleadoDTO", empleadoService.obtenerEmpleadoParaEditar(id, unidad));
+        return "responsable/editar-empleado";
+    }
+
+    @PostMapping("/empleados/{id}/editar")
+    public String editarEmpleado(@PathVariable Long id,
+                                 @Valid @ModelAttribute("editarEmpleadoDTO") EditarEmpleadoDTO dto, BindingResult result,
+                                 @UnidadDelResponsable UnidadVenta unidad, Model model, RedirectAttributes redirectAttributes) {
+        if (!result.hasErrors()) {
+            try {
+                empleadoService.actualizarEmpleado(id, dto, unidad);
+                redirectAttributes.addFlashAttribute("mensaje", "Empleado modificado correctamente");
+                return "redirect:/responsable/empleados";
+            } catch (ReglaDeNegocioException e) {
+                model.addAttribute("error", "No se pudo modificar el empleado: " + e.getMessage());
+            }
+        }
+        model.addAttribute("empleadoId", id);
+        return "responsable/editar-empleado";
+    }
+
+    @PostMapping("/empleados/{id}/eliminar")
+    public String eliminarEmpleado(@PathVariable Long id, @UnidadDelResponsable UnidadVenta unidad, RedirectAttributes redirectAttributes) {
+        try {
+            empleadoService.darDeBajaEmpleado(id, unidad);
+            redirectAttributes.addFlashAttribute("mensaje", "Empleado dado de baja definitivamente");
+        } catch (ReglaDeNegocioException e) {
+            redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());
+        }
+        return "redirect:/responsable/empleados";
     }
 }
