@@ -58,6 +58,33 @@ public class EmpleadoController {
         return "empleado/pedidos";
     }
 
+    // Solo el cajero: lo vendido hoy por la unidad del festival en curso y los cierres anteriores
+    @GetMapping("/cerrar-caja")
+    public String verCierreDeCaja(Model model, Principal principal, RedirectAttributes redirectAttributes) {
+        Personal cajero = validarQueSeaCajero(principal);
+        try {
+            UnidadVenta unidad = unidadEnCurso(cajero);
+            model.addAttribute("cierre", pedidoService.calcularCierreDelDia(unidad));
+            model.addAttribute("cierresAnteriores", pedidoService.obtenerCierresDeUnidad(unidad));
+            return "empleado/cerrar-caja";
+        } catch (NoEncontradoException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+            return "redirect:/empleado/perfil";
+        }
+    }
+
+    @PostMapping("/cerrar-caja")
+    public String cerrarCaja(Principal principal, RedirectAttributes redirectAttributes) {
+        Personal cajero = validarQueSeaCajero(principal);
+        try {
+            pedidoService.cerrarCaja(unidadEnCurso(cajero), cajero);
+            redirectAttributes.addFlashAttribute("mensaje", "Caja cerrada: no se cargan más pedidos hasta mañana");
+        } catch (NoEncontradoException | ReglaDeNegocioException e) {
+            redirectAttributes.addFlashAttribute("error", e.getMessage());
+        }
+        return "redirect:/empleado/cerrar-caja";
+    }
+
     @GetMapping("/recibos")
     public String verRecibos(Model model, Principal principal) {
         model.addAttribute("recibos", liquidacionService.obtenerRecibos(principal.getName()));
@@ -73,6 +100,10 @@ public class EmpleadoController {
             unidad = unidadEnCurso(cajero);
         } catch (NoEncontradoException e) {
             redirectAttributes.addFlashAttribute("error", e.getMessage() + ": no podés cargar pedidos");
+            return "redirect:/empleado/perfil";
+        }
+        if (pedidoService.cajaCerradaHoy(unidad)) {
+            redirectAttributes.addFlashAttribute("error", "La caja de hoy ya está cerrada: no se cargan más pedidos hasta mañana");
             return "redirect:/empleado/perfil";
         }
         model.addAttribute("unidad", unidad);

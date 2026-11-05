@@ -78,6 +78,8 @@
                 <th:block th:if="${usuario != null and usuario.operaCaja}">
                     <a th:href="@{/empleado/pedidos/crear}" th:classappend="${ruta == '/empleado/pedidos/crear'} ? 'activo'">
                         <svg class="icono"><use href="#i-plus"/></svg> Nuevo pedido</a>
+                    <a th:href="@{/empleado/cerrar-caja}" th:classappend="${ruta == '/empleado/cerrar-caja'} ? 'activo'">
+                        <svg class="icono"><use href="#i-lock"/></svg> Cerrar caja</a>
                 </th:block>
             </th:block>
         </nav>
