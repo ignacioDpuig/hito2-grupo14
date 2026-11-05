@@ -1,5 +1,8 @@
 package com.grupo14.hito2;
 
+import com.grupo14.hito2.dtos.CierreCajaDTO;
+import com.grupo14.hito2.dtos.CrearDetallePedidoDTO;
+import com.grupo14.hito2.dtos.CrearPedidoDTO;
 import com.grupo14.hito2.dtos.CrearEmpleadoDTO;
 import com.grupo14.hito2.dtos.CrearPlatoDTO;
 import com.grupo14.hito2.dtos.CrearUnidadVentaDTO;
@@ -17,6 +20,7 @@ import com.grupo14.hito2.entities.UnidadVenta;
 import com.grupo14.hito2.enums.CategoriaCocinero;
 import com.grupo14.hito2.exceptions.NoEncontradoException;
 import com.grupo14.hito2.services.LiquidacionService;
+import com.grupo14.hito2.services.PedidoService;
 import com.grupo14.hito2.services.CuentaService;
 import com.grupo14.hito2.services.EmpleadoService;
 import com.grupo14.hito2.services.PlatoService;
@@ -50,6 +54,8 @@ class ReportesIntegracionTests {
     private EmpleadoService empleadoService;
     @Autowired
     private PlatoService platoService;
+    @Autowired
+    private PedidoService pedidoService;
     @Autowired
     private UsuarioDetailsService usuarioDetailsService;
 
@@ -190,6 +196,51 @@ class ReportesIntegracionTests {
         assertThatThrownBy(() -> unidadVentaService.modificarUnidad(unidadDe("juan@email.com"), dto))
                 .isInstanceOf(ReglaDeNegocioException.class)
                 .hasMessageContaining("patente");
+    }
+
+    @Test
+    void cierreDeCajaDelCajeroEnElFestivalEnCurso() {
+        long cajeroId = cuentaService.buscarPorEmail("cajero@cajero").getId();
+        UnidadVenta unidad = unidadVentaService.buscarUnidadEnFestivalEnCurso(cajeroId);
+
+        CierreCajaDTO cierre = pedidoService.calcularCierreDelDia(unidad);
+
+        assertThat(cierre.getNombreUnidad()).isEqualTo("Food Truck La Primavera");
+        assertThat(cierre.getFecha()).isEqualTo(LocalDate.now());
+        assertThat(cierre.getCantidadPedidos()).isEqualTo(1);
+        assertThat(cierre.getTotalVendido()).isEqualByComparingTo("57000");
+        assertThat(cierre.isCerrada()).isFalse();
+    }
+
+    @Test
+    void cerrarLaCajaGuardaElTotalYNoAceptaMasPedidosEseDia() {
+        Personal cajero = cuentaService.buscarPorEmail("cajero@cajero");
+        UnidadVenta unidad = unidadVentaService.buscarUnidadEnFestivalEnCurso(cajero.getId());
+        long platoId = platoService.obtenerPlatosActivosPorUnidad(unidad.getId()).get(0).getId();
+
+        CierreCajaDTO cierre = pedidoService.cerrarCaja(unidad, cajero);
+
+        assertThat(cierre.isCerrada()).isTrue();
+        assertThat(cierre.getTotalVendido()).isEqualByComparingTo("57000");
+        assertThat(cierre.getCerradaPor()).isEqualTo("Lucas Fernández");
+        assertThat(pedidoService.calcularCierreDelDia(unidad).isCerrada()).isTrue();
+        assertThat(pedidoService.obtenerCierresDeUnidad(unidad)).hasSize(1);
+        assertThatThrownBy(() -> pedidoService.cerrarCaja(unidad, cajero))
+                .isInstanceOf(ReglaDeNegocioException.class);
+        CrearPedidoDTO pedido = new CrearPedidoDTO(List.of(new CrearDetallePedidoDTO(platoId, 1)));
+        assertThatThrownBy(() -> pedidoService.crearPedido(pedido, unidad))
+                .isInstanceOf(ReglaDeNegocioException.class)
+                .hasMessageContaining("caja");
+    }
+
+    @Test
+    void soloUnCajeroCierraLaCaja() {
+        Personal cajero = cuentaService.buscarPorEmail("cajero@cajero");
+        UnidadVenta unidad = unidadVentaService.buscarUnidadEnFestivalEnCurso(cajero.getId());
+        Personal responsable = cuentaService.buscarPorEmail("sofia@email.com");
+
+        assertThatThrownBy(() -> pedidoService.cerrarCaja(unidad, responsable))
+                .isInstanceOf(ReglaDeNegocioException.class);
     }
 
     @Test
