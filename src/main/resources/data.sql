@@ -73,6 +73,22 @@ INSERT INTO puesto_desarmable (id, cantidad_carpas, tiempo_montaje) VALUES (@uni
 INSERT INTO unidad_personal (unidad_id, personal_id) VALUES (@unidad2_id, @responsable2_id);
 INSERT INTO unidad_personal (unidad_id, personal_id) VALUES (@unidad2_id, @cocinero2_id);
 
+-- 10. Insertar Platos para Unidad 1 (precios y cantidades pensados para que la rentabilidad neta sea positiva)
+INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Pizza Margherita', 3000.00, 10000.00, @unidad1_id);
+SET @plato1_1 = LAST_INSERT_ID();
+INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Pizza Pepperoni', 3600.00, 12000.00, @unidad1_id);
+SET @plato1_2 = LAST_INSERT_ID();
+INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Pizza Vegetariana', 3200.00, 11000.00, @unidad1_id);
+SET @plato1_3 = LAST_INSERT_ID();
+
+-- 11. Insertar Platos para Unidad 2
+INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Asado Argentino', 5000.00, 16000.00, @unidad2_id);
+SET @plato2_1 = LAST_INSERT_ID();
+INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Costillas BBQ', 4400.00, 15000.00, @unidad2_id);
+SET @plato2_2 = LAST_INSERT_ID();
+INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Choripán', 2400.00, 8000.00, @unidad2_id);
+SET @plato2_3 = LAST_INSERT_ID();
+
 -- 16. Configuración de Costos
 INSERT INTO configuracion_costos (costo_superficie, costo_montaje, plus_electricidad, sueldo_base, plus_cocinero, plus_cocinero_ayudante, plus_lavaplatos, monto_antiguedad, festival_id)
 VALUES (500, 10, 2000, 100000, 150000, 100000, 50000, 5000, @festival_id);
@@ -112,6 +128,11 @@ INSERT INTO food_truck (id, patente, esta_conectado) VALUES (@unidad3_id, 'AB123
 INSERT INTO unidad_personal (unidad_id, personal_id) VALUES (@unidad3_id, @responsable3_id);
 INSERT INTO unidad_personal (unidad_id, personal_id) VALUES (@unidad3_id, @cajero1_id);
 
+INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Empanada de Carne', 800.00, 2500.00, @unidad3_id);
+SET @plato3_1 = LAST_INSERT_ID();
+INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Hamburguesa Completa', 3000.00, 9000.00, @unidad3_id);
+SET @plato3_2 = LAST_INSERT_ID();
+
 -- 22. Costos propios de los Food Trucks en Primavera 2026: le ganan a la configuración general (sección 17).
 --     Food Truck La Primavera: canon 20 m² × $700 = $14.000; su cajero cobra con sueldo base $110.000
 INSERT INTO configuracion_costos (costo_superficie, costo_montaje, plus_electricidad, sueldo_base, plus_cocinero, plus_cocinero_ayudante, plus_lavaplatos, monto_antiguedad, tipo_unidad, festival_id)
@@ -140,6 +161,9 @@ INSERT INTO cajero (id, turno) VALUES (@cajera_baja_id, 'Mañana');
 INSERT INTO personal_rol (personal_id, rol_id) VALUES (@cajera_baja_id, @empleado_role);
 INSERT INTO unidad_personal (unidad_id, personal_id, eliminado) VALUES (@unidad2_id, @cajera_baja_id, true);
 
+-- 25. Plato dado de baja: no se ofrece en pedidos nuevos y se puede reactivar
+INSERT INTO plato (nombre, costo_produccion, precio_venta, eliminado, unidad_venta_id) VALUES ('Provoleta', 1800.00, 6000.00, true, @unidad2_id);
+
 -- 26. Festival histórico de Otoño, con su unidad original y ventas registradas.
 INSERT INTO festival (nombre, temporada, fecha_inicio, fecha_fin)
 VALUES ('Festival de Otoño', 'Otoño', '2025-04-01', '2025-04-16');
@@ -160,6 +184,8 @@ VALUES ('Puesto Sabores Andinos', 'PDANDINO01', 15.0, @responsable4_id, @festiva
 SET @unidad4_id = LAST_INSERT_ID();
 INSERT INTO puesto_desarmable (id, cantidad_carpas, tiempo_montaje) VALUES (@unidad4_id, 2, 45);
 INSERT INTO unidad_personal (unidad_id, personal_id) VALUES (@unidad4_id, @responsable4_id);
+INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Empanadas Andinas', 1000, 5000, @unidad4_id);
+SET @plato4_1 = LAST_INSERT_ID();
 
 -- 27. Unidades de ejemplo: cada festival queda con cinco unidades y ventas de margen alto.
 INSERT INTO personal (nombre, apellido, dni, fecha_nacimiento, fecha_ingreso, email, pass, esta_activo) VALUES
@@ -264,6 +290,40 @@ VALUES ('Puesto Otoño Oeste', 'PDOTONIO03', 12.0, (SELECT id FROM personal WHER
 SET @unidad15_id = LAST_INSERT_ID();
 INSERT INTO puesto_desarmable (id, cantidad_carpas, tiempo_montaje) VALUES (@unidad15_id, 1, 20);
 INSERT INTO unidad_personal (unidad_id, personal_id) VALUES (@unidad15_id, (SELECT id FROM personal WHERE email = 'demo-otono-04@festival.local'));
+
+-- Cada unidad nueva vende 50 porciones a $20.000 con costo de $5.000: margen de $750.000 antes de canon y sueldos.
+INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Menú Demo 2024 1', 5000, 20000, @unidad5_id);
+SET @plato5_id = LAST_INSERT_ID();
+
+INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Menú Demo 2024 2', 5000, 20000, @unidad6_id);
+SET @plato6_id = LAST_INSERT_ID();
+
+INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Menú Demo 2024 3', 5000, 20000, @unidad7_id);
+SET @plato7_id = LAST_INSERT_ID();
+
+INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Menú Demo 2026 1', 5000, 20000, @unidad8_id);
+SET @plato8_id = LAST_INSERT_ID();
+
+INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Menú Demo 2026 2', 5000, 20000, @unidad9_id);
+SET @plato9_id = LAST_INSERT_ID();
+
+INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Menú Demo 2026 3', 5000, 20000, @unidad10_id);
+SET @plato10_id = LAST_INSERT_ID();
+
+INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Menú Demo 2026 4', 5000, 20000, @unidad11_id);
+SET @plato11_id = LAST_INSERT_ID();
+
+INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Menú Demo Otoño 1', 5000, 20000, @unidad12_id);
+SET @plato12_id = LAST_INSERT_ID();
+
+INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Menú Demo Otoño 2', 5000, 20000, @unidad13_id);
+SET @plato13_id = LAST_INSERT_ID();
+
+INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Menú Demo Otoño 3', 5000, 20000, @unidad14_id);
+SET @plato14_id = LAST_INSERT_ID();
+
+INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Menú Demo Otoño 4', 5000, 20000, @unidad15_id);
+SET @plato15_id = LAST_INSERT_ID();
 
 -- 28. Staff de las unidades de ejemplo: un cocinero y un cajero en cada una (pass: pass456).
 --     Con las 50 porciones vendidas, todas las unidades quedan con rentabilidad neta positiva.
