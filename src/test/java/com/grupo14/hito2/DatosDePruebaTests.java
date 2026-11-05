@@ -38,6 +38,15 @@ class DatosDePruebaTests {
     private UsuarioDetailsService usuarioDetailsService;
 
     @Test
+    void elAyudanteTrabajoEnDosFestivales() {
+        long martinId = cuentaService.buscarPorEmail("martin@email.com").getId();
+
+        assertThat(unidadVentaService.obtenerHistorial(martinId)).hasSize(2);
+        assertThat(unidadVentaService.obtenerUnidadEnFestivalEnCurso(martinId))
+                .hasValueSatisfying(u -> assertThat(u.getNombreComercial()).isEqualTo("Food Truck La Primavera"));
+    }
+
+    @Test
     void laCajeraDadaDeBajaNoEntraNiApareceEnLaGestionDeEmpleados() {
         assertThat(usuarioDetailsService.loadUserByUsername("rocio@email.com").isEnabled()).isFalse();
 

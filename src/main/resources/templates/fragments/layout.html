@@ -58,6 +58,14 @@
                 <a th:href="@{/responsable/empleados}" th:classappend="${ruta.startsWith('/responsable/empleados')} ? 'activo'">
                     <svg class="icono"><use href="#i-users"/></svg> Empleados</a>
             </th:block>
+
+            <th:block th:if="${seccion == 'empleado'}">
+                <span class="menu-titulo">Mi trabajo</span>
+                <a th:href="@{/empleado/perfil}" th:classappend="${ruta == '/empleado/perfil'} ? 'activo'">
+                    <svg class="icono"><use href="#i-home"/></svg> Inicio</a>
+                <a th:href="@{/empleado/historial}" th:classappend="${ruta.startsWith('/empleado/historial')} ? 'activo'">
+                    <svg class="icono"><use href="#i-history"/></svg> Historial</a>
+            </th:block>
         </nav>
 
         <div class="sidebar-pie">
