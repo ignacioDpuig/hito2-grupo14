@@ -6,6 +6,7 @@ import java.util.Optional;
 import java.util.Set;
 
 import com.grupo14.hito2.enums.TipoUnidad;
+import com.grupo14.hito2.exceptions.ReglaDeNegocioException;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -58,10 +59,24 @@ public abstract class UnidadVenta {
         return calcularCanon(getConfiguracionCostos());
     }
 
+    // Un puesto con poca superficie y mucho montaje daría un canon negativo: el predio le estaría pagando a la unidad
+    public void validarCanon() {
+        BigDecimal canon = calcularCanon();
+        if (canon.signum() < 0) {
+            throw new ReglaDeNegocioException(String.format(
+                    "Con esos datos el canon da negativo ($%.2f): la superficie es muy chica para ese tiempo de montaje", canon));
+        }
+    }
+
     // Superficie y tiempo de montaje son float: se pasan por su texto para que 14.3 no quede 14.300000190734863
     protected static BigDecimal decimal(float valor) {
         return new BigDecimal(Float.toString(valor));
     }
+
+    public abstract DatosUnidad getDatosDelTipo();
+
+    // Cada tipo valida y actualiza sus propios datos: el código y el tipo no se modifican
+    public abstract void actualizarDatosDelTipo(DatosUnidad datos);
 
     // Habilitada = su responsable ya activó la cuenta con la contraseña que recibió por mail
     public boolean isActiva() {

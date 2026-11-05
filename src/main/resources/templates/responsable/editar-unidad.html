@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Mi unidad')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: menu('responsable')}"></th:block>
+
+<div class="container angosto">
+    <div class="card">
+        <h2><svg class="icono"><use href="#i-truck"/></svg> Mi unidad de venta</h2>
+        <p class="subtitulo">El código y el tipo no se pueden cambiar: identifican a la unidad y definen cómo se calcula el canon.</p>
+
+        <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+        <form th:action="@{/responsable/unidad}" th:object="${editarUnidadVentaDTO}" method="post">
+            <div th:replace="~{fragments/layout :: erroresFormulario}"></div>
+            <input type="hidden" th:field="*{codigo}">
+            <input type="hidden" th:field="*{tipoUnidad}">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label>Código</label>
+                    <input type="text" th:value="*{codigo}" disabled>
+                </div>
+                <div class="form-group">
+                    <label>Tipo</label>
+                    <input type="text" th:value="*{tipoUnidad}" disabled>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="nombreComercial">Nombre comercial</label>
+                    <input type="text" id="nombreComercial" th:field="*{nombreComercial}" required>
+                </div>
+                <div class="form-group">
+                    <label for="superficie">Superficie (m²)</label>
+                    <input type="number" id="superficie" th:field="*{superficie}" step="0.01" min="0.01" required>
+                </div>
+            </div>
+
+            <th:block th:if="*{tipoUnidad == 'FoodTruck'}">
+                <div class="section-title">Food truck</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="patente">Patente</label>
+                        <input type="text" id="patente" th:field="*{patente}" required>
+                    </div>
+                    <div class="form-group">
+                        <label><input type="checkbox" th:field="*{estaConectado}"> Requiere conexión eléctrica</label>
+                    </div>
+                </div>
+            </th:block>
+            <th:block th:if="*{tipoUnidad == 'PuestoDesarmable'}">
+                <div class="section-title">Puesto desarmable</div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="cantidadCarpas">Cantidad de carpas</label>
+                        <input type="number" id="cantidadCarpas" th:field="*{cantidadCarpas}" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="tiempoMontaje">Tiempo de montaje (horas)</label>
+                        <input type="number" id="tiempoMontaje" th:field="*{tiempoMontaje}" step="0.1" min="0" required>
+                    </div>
+                </div>
+            </th:block>
+
+            <div class="form-buttons">
+                <button type="submit" class="btn btn-primario">Guardar cambios</button>
+                <a th:href="@{/responsable/dashboard}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

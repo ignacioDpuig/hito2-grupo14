@@ -73,4 +73,8 @@ class DatosDePruebaTests {
             }
         }
     }
+
+    private UnidadVenta unidadDe(String emailResponsable) {
+        return unidadVentaService.buscarUnidadDelResponsable(emailResponsable);
+    }
 }

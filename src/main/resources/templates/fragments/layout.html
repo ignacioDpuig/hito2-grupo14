@@ -48,6 +48,14 @@
                 <a th:href="@{/admin/canon-reporte}" th:classappend="${ruta.startsWith('/admin/canon')} ? 'activo'">
                     <svg class="icono"><use href="#i-coins"/></svg> Mayor canon</a>
             </th:block>
+
+            <th:block th:if="${seccion == 'responsable'}">
+                <span class="menu-titulo">Mi unidad</span>
+                <a th:href="@{/responsable/dashboard}" th:classappend="${ruta == '/responsable/dashboard'} ? 'activo'">
+                    <svg class="icono"><use href="#i-home"/></svg> Inicio</a>
+                <a th:href="@{/responsable/unidad}" th:classappend="${ruta == '/responsable/unidad'} ? 'activo'">
+                    <svg class="icono"><use href="#i-store"/></svg> Datos de la unidad</a>
+            </th:block>
         </nav>
 
         <div class="sidebar-pie">

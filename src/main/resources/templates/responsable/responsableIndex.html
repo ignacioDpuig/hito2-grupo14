@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Inicio')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: menu('responsable')}"></th:block>
+
+<div class="container">
+    <div class="header">
+        <div>
+            <h1 th:text="'Hola, ' + ${usuario.nombre}">Hola</h1>
+            <p>
+                <strong th:text="${unidad.nombreComercial}">Unidad</strong> ·
+                <span th:text="${unidad.tipoDescripcion}">Tipo</span> ·
+                <span th:text="${unidad.festival.nombre}">Festival</span>
+            </p>
+        </div>
+        <span th:if="${unidad.activa}" class="chip chip-ok"><svg class="icono"><use href="#i-check"/></svg> Unidad habilitada</span>
+        <span th:unless="${unidad.activa}" class="chip chip-pendiente"><svg class="icono"><use href="#i-clock"/></svg> Pendiente</span>
+    </div>
+
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <div class="card-grid">
+        <div class="card card-menu">
+            <h2><svg class="icono"><use href="#i-store"/></svg> Datos de la unidad</h2>
+            <p>Nombre comercial, superficie y los datos propios de tu food truck o puesto</p>
+            <a th:href="@{/responsable/unidad}" class="btn btn-suave">Modificar unidad</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

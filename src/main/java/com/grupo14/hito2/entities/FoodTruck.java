@@ -1,6 +1,8 @@
 package com.grupo14.hito2.entities;
 
 import com.grupo14.hito2.enums.TipoUnidad;
+import com.grupo14.hito2.validation.PatenteValidator;
+import com.grupo14.hito2.exceptions.ReglaDeNegocioException;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
@@ -27,5 +29,19 @@ public class FoodTruck extends UnidadVenta {
     @Override
     public TipoUnidad getTipoUnidad() {
         return TipoUnidad.FOOD_TRUCK;
+    }
+
+    @Override
+    public DatosUnidad getDatosDelTipo() {
+        return new DatosUnidad(patente, estaConectado, null, null);
+    }
+
+    @Override
+    public void actualizarDatosDelTipo(DatosUnidad datos) {
+        if (datos.patente() == null || datos.patente().isBlank()) {
+            throw new ReglaDeNegocioException("La patente del food truck es obligatoria");
+        }
+        this.patente = PatenteValidator.normalizar(datos.patente());
+        this.estaConectado = Boolean.TRUE.equals(datos.estaConectado());
     }
 }
