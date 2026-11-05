@@ -9,6 +9,7 @@ import com.grupo14.hito2.services.LiquidacionService;
 import com.grupo14.hito2.services.CuentaService;
 import com.grupo14.hito2.services.EmpleadoService;
 import com.grupo14.hito2.services.FestivalService;
+import com.grupo14.hito2.services.PlatoService;
 import com.grupo14.hito2.services.UnidadVentaService;
 import com.grupo14.hito2.services.UsuarioDetailsService;
 import org.junit.jupiter.api.Test;
@@ -39,6 +40,8 @@ class DatosDePruebaTests {
     private LiquidacionService liquidacionService;
     @Autowired
     private UnidadVentaService unidadVentaService;
+    @Autowired
+    private PlatoService platoService;
     @Autowired
     private UsuarioDetailsService usuarioDetailsService;
 
@@ -87,6 +90,16 @@ class DatosDePruebaTests {
             assertThat(liquidacionService.calcularLiquidacionDeEmpleadoDeLaUnidad(unidad, martinId)).isNotNull();
         }
         assertThat(unidadVentaService.obtenerHistorial(martinId)).hasSize(2);
+    }
+
+    @Test
+    void laProvoletaEstaDadaDeBajaYNoSeOfreceEnPedidos() {
+        UnidadVenta puesto = unidadDe("responsable@responsable");
+
+        assertThat(platoService.obtenerTodosLosPlatosPorUnidad(puesto.getId()))
+                .anyMatch(p -> p.getNombre().equals("Provoleta") && p.isEliminado());
+        assertThat(platoService.obtenerPlatosActivosPorUnidad(puesto.getId()))
+                .noneMatch(p -> p.getNombre().equals("Provoleta"));
     }
 
     @Test

@@ -1,12 +1,14 @@
 package com.grupo14.hito2;
 
 import com.grupo14.hito2.dtos.CrearEmpleadoDTO;
+import com.grupo14.hito2.dtos.CrearPlatoDTO;
 import com.grupo14.hito2.dtos.CrearUnidadVentaDTO;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.Validation;
 import jakarta.validation.Validator;
 import org.junit.jupiter.api.Test;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Set;
 
@@ -149,4 +151,22 @@ class ValidacionesTests {
         assertThat(validator.validate(dto)).singleElement()
                 .satisfies(v -> assertThat(v.getPropertyPath().toString()).isEqualTo("codigo"));
     }
+
+    @Test
+    void elPrecioDeVentaNoPuedeSerMenorAlCosto() {
+        assertThat(errores(new CrearPlatoDTO("Pizza", new BigDecimal("3000"), new BigDecimal("3000"))))
+                .isEmpty();
+        assertThat(errores(new CrearPlatoDTO("Pizza", new BigDecimal("3000"), new BigDecimal("2999.99"))))
+                .containsExactly("El precio de venta no puede ser menor al costo de producción");
+        assertThat(errores(new CrearPlatoDTO("Pizza", new BigDecimal("3000"), new BigDecimal("3000.01")))).isEmpty();
+    }
+
+    @Test
+    void platoConPrecioCeroYCostoNegativo() {
+        CrearPlatoDTO dto = new CrearPlatoDTO("Pizza", new BigDecimal("-1"), new BigDecimal("0"));
+        assertThat(errores(dto)).containsExactlyInAnyOrder(
+                "El costo de producción no puede ser negativo",
+                "El precio de venta debe ser mayor a 0");
+    }
+
 }
