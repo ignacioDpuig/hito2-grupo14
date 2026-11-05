@@ -50,6 +50,19 @@ public class UnidadVentaService {
         return unidadVentaRepository.findByCodigo(codigo);
     }
 
+    // Todas las unidades donde trabajó, del festival más reciente al más viejo
+    public List<UnidadVenta> obtenerHistorial(long personalId) {
+        return unidadVentaRepository.findByStaffId(personalId);
+    }
+
+    // Solo donde sigue activo: si lo dieron de baja en esa unidad, ya no trabaja ahí
+    public Optional<UnidadVenta> obtenerUnidadEnFestivalEnCurso(long personalId) {
+        LocalDate hoy = LocalDate.now();
+        return unidadVentaRepository.findActivasByStaffId(personalId).stream()
+                .filter(u -> u.getFestival().estaEnCurso(hoy))
+                .findFirst();
+    }
+
     @Transactional
     public UnidadVenta crearUnidadVenta(CrearUnidadVentaDTO dto) {
         validarAltaDeUnidad(dto);
