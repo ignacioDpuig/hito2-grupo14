@@ -99,11 +99,24 @@ public abstract class UnidadVenta {
         return buscarEnStaff(personal).isPresent();
     }
 
+    public boolean tieneActivoEnStaff(Personal personal) {
+        return buscarEnStaff(personal).filter(asignacion -> !asignacion.isEliminado()).isPresent();
+    }
+
+    public void darDeBajaDelStaff(Personal personal) {
+        asignacionDe(personal).setEliminado(true);
+    }
+
     public long getCantidadStaffActivo() {
         return staff.stream().filter(asignacion -> !asignacion.isEliminado()).count();
     }
 
     private Optional<AsignacionStaff> buscarEnStaff(Personal personal) {
         return staff.stream().filter(asignacion -> asignacion.esDe(personal)).findFirst();
+    }
+
+    private AsignacionStaff asignacionDe(Personal personal) {
+        return buscarEnStaff(personal)
+                .orElseThrow(() -> new ReglaDeNegocioException(personal.getNombre() + " no es parte de " + nombreComercial));
     }
 }
