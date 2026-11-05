@@ -1,8 +1,11 @@
 package com.grupo14.hito2.controllers;
 
 import com.grupo14.hito2.configuration.UnidadDelResponsable;
+import com.grupo14.hito2.dtos.CrearEmpleadoDTO;
 import com.grupo14.hito2.dtos.EditarUnidadVentaDTO;
+import com.grupo14.hito2.dtos.FiltroEmpleadosDTO;
 import com.grupo14.hito2.entities.UnidadVenta;
+import com.grupo14.hito2.services.EmpleadoService;
 import com.grupo14.hito2.services.UnidadVentaService;
 import com.grupo14.hito2.exceptions.ReglaDeNegocioException;
 import jakarta.validation.Valid;
@@ -22,12 +25,14 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 @RequiredArgsConstructor
 public class ResponsableController {
 
+    private final EmpleadoService empleadoService;
     private final UnidadVentaService unidadVentaService;
 
     // Inicio con los números de la unidad de un vistazo
     @GetMapping("/dashboard")
     public String dashboard(Model model, @UnidadDelResponsable UnidadVenta unidad) {
         model.addAttribute("unidad", unidad);
+        model.addAttribute("empleadosActivos", empleadoService.obtenerEmpleados(unidad, new FiltroEmpleadosDTO()).size());
         return "responsable/responsableIndex";
     }
 
@@ -52,5 +57,36 @@ public class ResponsableController {
             }
         }
         return "responsable/editar-unidad";
+    }
+
+    // ─── Empleados ────────────────────────────────────────────────────────────
+
+    // Las bajas no se muestran; permanecen únicamente para conservar el historial.
+    @GetMapping("/empleados")
+    public String verEmpleados(@ModelAttribute("filtro") FiltroEmpleadosDTO filtro, Model model, @UnidadDelResponsable UnidadVenta unidad) {
+        model.addAttribute("empleados", empleadoService.obtenerEmpleados(unidad, filtro));
+        return "responsable/empleados";
+    }
+
+    @GetMapping("/empleados/crear")
+    public String formularioCrearEmpleado(Model model) {
+        model.addAttribute("createEmpleadoDTO", new CrearEmpleadoDTO());
+        return "responsable/crear-empleado";
+    }
+
+    @PostMapping("/empleados/crear")
+    public String crearEmpleado(@Valid @ModelAttribute("createEmpleadoDTO") CrearEmpleadoDTO dto, BindingResult result,
+                                @UnidadDelResponsable UnidadVenta unidad, Model model, RedirectAttributes redirectAttributes) {
+        if (!result.hasErrors()) {
+            try {
+                empleadoService.crearEmpleado(dto, unidad);
+                redirectAttributes.addFlashAttribute("mensaje",
+                        "Empleado creado exitosamente. Credenciales enviadas a " + dto.getEmail());
+                return "redirect:/responsable/empleados";
+            } catch (ReglaDeNegocioException e) {
+                model.addAttribute("error", "No se pudo crear el empleado: " + e.getMessage());
+            }
+        }
+        return "responsable/crear-empleado";
     }
 }

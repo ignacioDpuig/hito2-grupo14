@@ -20,7 +20,19 @@
 
     <div th:replace="~{fragments/layout :: mensajes}"></div>
 
+    <div class="stat-grid">
+        <div class="stat">
+            <span class="stat-etiqueta"><svg class="icono"><use href="#i-users"/></svg> Empleados activos</span>
+            <span class="stat-valor" th:text="${empleadosActivos}">0</span>
+        </div>
+    </div>
+
     <div class="card-grid">
+        <div class="card card-menu">
+            <h2><svg class="icono"><use href="#i-users"/></svg> Empleados</h2>
+            <p>Alta, modificación y baja definitiva del personal de tu unidad</p>
+            <a th:href="@{/responsable/empleados}" class="btn btn-suave">Ver empleados</a>
+        </div>
         <div class="card card-menu">
             <h2><svg class="icono"><use href="#i-store"/></svg> Datos de la unidad</h2>
             <p>Nombre comercial, superficie y los datos propios de tu food truck o puesto</p>
