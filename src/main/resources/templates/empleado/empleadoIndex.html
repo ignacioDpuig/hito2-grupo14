@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Inicio')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: menu('empleado')}"></th:block>
+
+<div class="container">
+    <div class="header">
+        <h1>Hola, <span th:text="${empleado.nombre}">Empleado</span></h1>
+        <p>Tu trabajo en los festivales</p>
+    </div>
+
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <div th:if="${unidadActual != null}" class="card destacado">
+        <span class="destacado-icono"><svg class="icono"><use href="#i-map-pin"/></svg></span>
+        <div>
+            Hoy trabajás en <strong th:text="${unidadActual.nombreComercial}">Unidad</strong><br>
+            <span class="subtitulo" th:text="${unidadActual.festival.nombre} + ' · hasta el ' + ${#temporals.format(unidadActual.festival.fechaFin, 'dd/MM')}">Festival</span>
+        </div>
+    </div>
+    <div th:if="${unidadActual == null}" class="card destacado neutro">
+        <span class="destacado-icono"><svg class="icono"><use href="#i-pause"/></svg></span>
+        <div>No tenés un festival en curso en este momento. Podés ver tu historial.</div>
+    </div>
+
+    <div class="card-grid">
+        <div class="card card-menu">
+            <h2><svg class="icono"><use href="#i-history"/></svg> Historial</h2>
+            <p>Festivales y unidades donde trabajaste</p>
+            <a th:href="@{/empleado/historial}" class="btn btn-suave">Ver historial</a>
+        </div>
+    </div>
+</div>
+</body>
+</html>

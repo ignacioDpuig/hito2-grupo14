@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Historial')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: menu('empleado')}"></th:block>
+
+<div class="container">
+    <div class="header">
+        <h1><svg class="icono"><use href="#i-history"/></svg> Mi historial</h1>
+        <p>Festivales y unidades de venta donde trabajaste, del más reciente al más antiguo</p>
+    </div>
+
+    <p th:if="${#lists.isEmpty(unidades)}" class="alert alert-info">No tenés festivales en tu historial todavía.</p>
+
+    <div class="tabla-scroll" th:unless="${#lists.isEmpty(unidades)}">
+        <table>
+            <thead>
+            <tr>
+                <th>Festival</th>
+                <th>Temporada</th>
+                <th>Desde</th>
+                <th>Hasta</th>
+                <th>Unidad</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="unidad : ${unidades}">
+                <td th:text="${unidad.festival.nombre}">Festival</td>
+                <td th:text="${unidad.festival.temporada}">Temporada</td>
+                <td th:text="${#temporals.format(unidad.festival.fechaInicio, 'dd/MM/yyyy')}">01/01/2025</td>
+                <td th:text="${#temporals.format(unidad.festival.fechaFin, 'dd/MM/yyyy')}">31/01/2025</td>
+                <td th:text="${unidad.nombreComercial}">Unidad</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
