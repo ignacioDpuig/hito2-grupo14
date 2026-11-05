@@ -55,6 +55,8 @@
                     <svg class="icono"><use href="#i-home"/></svg> Inicio</a>
                 <a th:href="@{/responsable/unidad}" th:classappend="${ruta == '/responsable/unidad'} ? 'activo'">
                     <svg class="icono"><use href="#i-store"/></svg> Datos de la unidad</a>
+                <a th:href="@{/responsable/empleados}" th:classappend="${ruta.startsWith('/responsable/empleados')} ? 'activo'">
+                    <svg class="icono"><use href="#i-users"/></svg> Empleados</a>
             </th:block>
         </nav>
 

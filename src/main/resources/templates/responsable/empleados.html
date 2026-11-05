@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Empleados')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: menu('responsable')}"></th:block>
+
+<div class="container">
+    <div class="header">
+        <div>
+            <h1><svg class="icono"><use href="#i-users"/></svg> Gestión de Empleados</h1>
+            <p>Alta, baja y gestión del personal activo de tu unidad</p>
+        </div>
+        <div class="actions">
+            <a th:href="@{/responsable/empleados/crear}" class="btn btn-primario"><svg class="icono"><use href="#i-plus"/></svg> Agregar empleado</a>
+        </div>
+    </div>
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <form th:action="@{/responsable/empleados}" th:object="${filtro}" method="get" class="filtros">
+        <div class="form-group">
+            <label for="texto">Buscar</label>
+            <input type="text" id="texto" th:field="*{texto}" placeholder="Nombre, apellido o email">
+        </div>
+        <div class="form-group">
+            <label for="tipoPersonal">Tipo</label>
+            <select id="tipoPersonal" th:field="*{tipoPersonal}">
+                <option value="">Todos</option>
+                <option value="Cocinero">Cocineros</option>
+                <option value="Cajero">Cajeros</option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-suave">Filtrar</button>
+        <a th:href="@{/responsable/empleados}" class="btn btn-secondary">Limpiar</a>
+    </form>
+
+    <p th:if="${#lists.isEmpty(empleados)}" class="alert alert-info">No hay empleados que coincidan con el filtro.</p>
+
+    <div class="tabla-scroll" th:unless="${#lists.isEmpty(empleados)}">
+        <table>
+            <thead>
+            <tr>
+                <th>Empleado</th>
+                <th>Cargo</th>
+                <th>Ingreso</th>
+                <th>Estado</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="item : ${empleados}" th:with="empleado=${item.empleado}">
+                <td>
+                    <div class="persona">
+                        <span class="avatar" th:text="${#strings.substring(empleado.nombre, 0, 1) + #strings.substring(empleado.apellido, 0, 1)}">JG</span>
+                        <div>
+                            <span th:text="${empleado.apellido + ', ' + empleado.nombre}">García, Juan</span>
+                            <small th:text="${empleado.email}">juan@email.com</small>
+                        </div>
+                    </div>
+                </td>
+                <td th:text="${empleado.cargo}">Cajero</td>
+                <td th:text="${#temporals.format(empleado.fechaIngreso, 'dd/MM/yyyy')}">01/01/2024</td>
+                <td>
+                    <span th:if="${empleado.estaActivo}" class="estado-ok"><svg class="icono"><use href="#i-check"/></svg> Activo</span>
+                    <span th:if="${!empleado.estaActivo}" class="estado-pendiente"><svg class="icono"><use href="#i-clock"/></svg> Pendiente de activación</span>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Nuevo empleado')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: menu('responsable')}"></th:block>
+
+<div class="container angosto">
+    <div class="card">
+        <h2><svg class="icono"><use href="#i-user-plus"/></svg> Nuevo empleado</h2>
+        <p class="subtitulo">Se le envía un mail con su usuario y una contraseña temporal.</p>
+
+        <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+        <form th:action="@{/responsable/empleados/crear}" th:object="${createEmpleadoDTO}" method="post">
+            <div th:replace="~{fragments/layout :: erroresFormulario}"></div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" th:field="*{nombre}" required>
+                </div>
+                <div class="form-group">
+                    <label for="apellido">Apellido</label>
+                    <input type="text" id="apellido" th:field="*{apellido}" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="dni">DNI</label>
+                    <input type="number" id="dni" th:field="*{dni}" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" th:field="*{email}" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="fechaNacimiento">Fecha de nacimiento</label>
+                    <input type="date" id="fechaNacimiento" th:field="*{fechaNacimiento}" required>
+                </div>
+                <div class="form-group">
+                    <label for="fechaIngreso">Fecha de ingreso <small>(opcional, por defecto hoy)</small></label>
+                    <input type="date" id="fechaIngreso" th:field="*{fechaIngreso}">
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="tipoPersonal">Tipo de personal</label>
+                <select id="tipoPersonal" th:field="*{tipoPersonal}" onchange="mostrarSeccion()" required>
+                    <option value="">Seleccionar tipo</option>
+                    <option value="Cocinero">Cocinero</option>
+                    <option value="Cajero">Cajero</option>
+                </select>
+            </div>
+
+            <!-- Solo cocineros -->
+            <div id="seccionCocinero" class="form-section">
+                <div class="form-group">
+                    <label for="especialidad">Especialidad</label>
+                    <input type="text" id="especialidad" th:field="*{especialidad}" placeholder="Ej: Pizzas, Parrillas">
+                </div>
+                <div class="form-group">
+                    <label for="categoria">Categoría</label>
+                    <select id="categoria" th:field="*{categoria}">
+                        <option value="">Seleccionar categoría</option>
+                        <option value="COCINERO">Cocinero</option>
+                        <option value="COCINERO_AYUDANTE">Cocinero ayudante</option>
+                        <option value="LAVAPLATOS">Lavaplatos</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Solo cajeros: el enunciado define turno mañana o noche -->
+            <div id="seccionCajero" class="form-section">
+                <div class="form-group">
+                    <label for="turno">Turno</label>
+                    <select id="turno" th:field="*{turno}">
+                        <option value="">Seleccionar turno</option>
+                        <option value="Mañana">Mañana</option>
+                        <option value="Noche">Noche</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="form-buttons">
+                <button type="submit" class="btn btn-primario">Crear empleado</button>
+                <a th:href="@{/responsable/empleados}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Muestra los campos propios del tipo elegido y los vuelve obligatorios
+    function mostrarSeccion() {
+        const tipo = document.getElementById('tipoPersonal').value;
+        const esCocinero = tipo === 'Cocinero';
+        const esCajero = tipo === 'Cajero';
+        document.getElementById('seccionCocinero').classList.toggle('active', esCocinero);
+        document.getElementById('seccionCajero').classList.toggle('active', esCajero);
+        document.getElementById('categoria').required = esCocinero;
+        document.getElementById('turno').required = esCajero;
+    }
+    mostrarSeccion();
+</script>
+</body>
+</html>
