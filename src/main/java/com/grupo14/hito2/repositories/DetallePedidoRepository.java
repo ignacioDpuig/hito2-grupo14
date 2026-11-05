@@ -13,6 +13,17 @@ import java.time.LocalDate;
 @Repository
 public interface DetallePedidoRepository extends JpaRepository<DetallePedido, DetallePedidoId> {
 
+    // Ingresos, costo de los platos vendidos y cantidad de pedidos de una unidad en un festival
+    @Query("""
+        SELECT new com.grupo14.hito2.dtos.ResumenVentas(
+            COALESCE(SUM(dp.cantidad * dp.precioUnitario), 0.0bd),
+            COALESCE(SUM(dp.cantidad * dp.costoUnitario), 0.0bd),
+            COUNT(DISTINCT dp.pedido.id))
+        FROM DetallePedido dp
+        WHERE dp.plato.unidadVenta.id = :unidadId
+        AND dp.pedido.festival.id = :festivalId
+    """)
+    ResumenVentas resumirVentas(@Param("unidadId") long unidadId, @Param("festivalId") long festivalId);
 
     // Lo mismo que resumirVentas pero entre dos fechas, ambas incluidas
     @Query("""
