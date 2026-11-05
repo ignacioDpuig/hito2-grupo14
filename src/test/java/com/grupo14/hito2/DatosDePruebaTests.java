@@ -50,6 +50,7 @@ class DatosDePruebaTests {
                     assertThat(u.getFestival().getFechaInicio()).isEqualTo(LocalDate.of(2025, 4, 1));
                     assertThat(u.getFestival().getFechaFin()).isEqualTo(LocalDate.of(2025, 4, 16));
                 });
+        assertThat(unidadVentaService.obtenerMayoresCanon(FESTIVAL_DE_OTONIO, 3)).hasSize(3);
         assertThat(usuarioDetailsService.loadUserByUsername("pablo@email.com").isEnabled()).isTrue();
         assertThat(cuentaService.buscarPorEmail("pablo@email.com").isEstaActivo()).isTrue();
     }
