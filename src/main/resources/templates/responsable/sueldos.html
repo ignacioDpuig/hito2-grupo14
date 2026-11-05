@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Sueldos')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: menu('responsable')}"></th:block>
+
+<div class="container">
+    <div class="header">
+        <h1><svg class="icono"><use href="#i-wallet"/></svg> Liquidación de haberes</h1>
+        <p th:unless="${#lists.isEmpty(liquidaciones)}">
+            <span th:text="${liquidaciones[0].nombreFestival}">Festival</span>
+            (<span th:text="${liquidaciones[0].diasDuracion}">38</span> días) ·
+            se aplica <span th:text="${liquidaciones[0].porcentajeAplicado}">150%</span> de sueldo base + plus
+        </p>
+    </div>
+
+    <p th:if="${#lists.isEmpty(liquidaciones)}" class="alert alert-info">Tu unidad todavía no tiene empleados.</p>
+    <p th:unless="${#lists.isEmpty(liquidaciones)}" class="subtitulo">
+        Los empleados dados de baja se liquidan igual: trabajaron en el festival.
+    </p>
+
+    <div class="tabla-scroll" th:unless="${#lists.isEmpty(liquidaciones)}">
+        <table>
+            <thead>
+            <tr>
+                <th>Empleado</th>
+                <th>Cargo</th>
+                <th class="monto">Sueldo base</th>
+                <th>Plus</th>
+                <th class="monto">Total neto</th>
+                <th>Acciones</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="l : ${liquidaciones}">
+                <td>
+                    <div class="persona">
+                        <span class="avatar" th:text="${#strings.substring(l.nombreEmpleado, 0, 1) + #strings.substring(l.apellidoEmpleado, 0, 1)}">JG</span>
+                        <div>
+                            <span th:text="${l.apellidoEmpleado + ', ' + l.nombreEmpleado}">García, Juan</span>
+                            <small th:if="${l.dadoDeBaja}" class="negativo" title="Se liquida igual porque trabajó en el festival">Dado de baja</small>
+                        </div>
+                    </div>
+                </td>
+                <td th:text="${l.cargo + ' · ' + l.especialidadOTurno}">Cocinero · Pizzas</td>
+                <td class="monto"><span th:replace="~{fragments/layout :: monto(${l.sueldoBase})}"></span></td>
+                <td><span th:text="${l.conceptoPlus}">Plus</span>:
+                    <span th:replace="~{fragments/layout :: monto(${l.plus})}"></span></td>
+                <td class="monto"><strong><span th:replace="~{fragments/layout :: monto(${l.totalNeto})}"></span></strong></td>
+                <td class="acciones">
+                    <a th:href="@{/responsable/sueldos/{id}(id=${l.empleadoId})}" class="btn btn-sm btn-suave">Ver recibo</a>
+                </td>
+            </tr>
+            <tr class="total">
+                <td colspan="4">Total de sueldos de la unidad</td>
+                <td class="monto"><span th:replace="~{fragments/layout :: monto(${#aggregates.sum(liquidaciones.![totalNeto])})}"></span></td>
+                <td></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

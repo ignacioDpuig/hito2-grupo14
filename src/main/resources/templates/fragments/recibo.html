@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<body>
+<!--
+  Recibo de haberes en pantalla.
+  Uso: <div th:replace="~{fragments/recibo :: recibo(${recibo})}"></div>
+-->
+<div th:fragment="recibo(r)" class="card recibo">
+    <div class="recibo-encabezado">
+        <div>
+            <small>RECIBO DE HABERES</small>
+            <h2 th:text="${r.nombreFestival}">Festival</h2>
+            <span th:text="${#temporals.format(r.fechaInicio, 'dd/MM/yyyy')} + ' al ' + ${#temporals.format(r.fechaFin, 'dd/MM/yyyy')} + ' · ' + ${r.diasDuracion} + ' días'">período</span>
+        </div>
+        <div class="recibo-numero">
+            <small>UNIDAD DE VENTA</small>
+            <strong th:text="'N° ' + ${r.unidadId}">N° 1</strong><br>
+            <span th:text="'Código ' + ${r.unidadCodigo}">Código</span>
+        </div>
+    </div>
+
+    <div class="recibo-cuerpo">
+        <div class="recibo-partes">
+            <div class="recibo-parte">
+                <h3>EMPLEADOR</h3>
+                <dl>
+                    <dt>Unidad</dt><dd th:text="${r.unidadNombre}">Unidad</dd>
+                    <dt>Tipo</dt><dd th:text="${r.unidadTipo}">Tipo</dd>
+                    <dt>Responsable</dt><dd th:text="${r.responsableNombre + ' ' + r.responsableApellido}">Responsable</dd>
+                    <dt>DNI</dt><dd th:text="${r.responsableDni} ?: '-'">0</dd>
+                    <dt>Email</dt><dd th:text="${r.responsableEmail}">email</dd>
+                </dl>
+            </div>
+            <div class="recibo-parte">
+                <h3>EMPLEADO</h3>
+                <dl>
+                    <dt>Nombre</dt><dd th:text="${r.nombreEmpleado + ' ' + r.apellidoEmpleado}">Empleado</dd>
+                    <dt>DNI</dt><dd th:text="${r.dniParaMostrar}">0</dd>
+                    <dt>Cargo</dt><dd th:text="${r.cargo + (r.especialidadOTurno != null ? ' · ' + r.especialidadOTurno : '')}">Cargo</dd>
+                    <dt>Ingreso</dt><dd th:text="${#temporals.format(r.fechaIngreso, 'dd/MM/yyyy')}">01/01/2024</dd>
+                    <dt>Email</dt><dd th:text="${r.emailParaMostrar}">email</dd>
+                </dl>
+            </div>
+        </div>
+
+        <table>
+            <tr><td>Sueldo base</td><td class="subtitulo">Fijado por el festival</td>
+                <td class="monto"><span th:replace="~{fragments/layout :: monto(${r.sueldoBase})}"></span></td></tr>
+            <tr><td th:text="${r.conceptoPlus}">Plus</td><td class="subtitulo" th:text="${r.cargo}">Cargo</td>
+                <td class="monto"><span th:replace="~{fragments/layout :: monto(${r.plus})}"></span></td></tr>
+            <tr><td>Duración del festival</td><td class="subtitulo" th:text="${r.desglose}">desglose</td>
+                <td class="monto" th:text="${r.porcentajeAplicado}">150%</td></tr>
+        </table>
+
+        <div class="recibo-total">
+            <span>Total neto a cobrar</span>
+            <strong><span th:replace="~{fragments/layout :: monto(${r.totalNeto})}"></span></strong>
+        </div>
+        <p class="subtitulo recibo-nota" th:if="${r.dadoDeBaja}">
+            El empleado fue dado de baja en la unidad: se liquida lo trabajado en el festival.
+        </p>
+    </div>
+</div>
+</body>
+</html>

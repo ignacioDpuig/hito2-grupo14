@@ -21,7 +21,19 @@
     </div>
     <div th:if="${unidadActual == null}" class="card destacado neutro">
         <span class="destacado-icono"><svg class="icono"><use href="#i-pause"/></svg></span>
-        <div>No tenés un festival en curso en este momento. Podés ver tu historial.</div>
+        <div>No tenés un festival en curso en este momento. Podés ver tu historial y tus recibos.</div>
+    </div>
+
+    <div class="stat-grid" th:unless="${#lists.isEmpty(recibos)}">
+        <div class="stat">
+            <span class="stat-etiqueta"><svg class="icono"><use href="#i-tent"/></svg> Festivales trabajados</span>
+            <span class="stat-valor" th:text="${recibos.size()}">0</span>
+        </div>
+        <div class="stat">
+            <span class="stat-etiqueta"><svg class="icono"><use href="#i-receipt"/></svg> Total liquidado</span>
+            <span class="stat-valor"><span th:replace="~{fragments/layout :: monto(${#aggregates.sum(recibos.![totalNeto])})}"></span></span>
+            <span class="stat-detalle">Sumando todos tus recibos</span>
+        </div>
     </div>
 
     <div class="card-grid">
@@ -29,6 +41,11 @@
             <h2><svg class="icono"><use href="#i-history"/></svg> Historial</h2>
             <p>Festivales y unidades donde trabajaste</p>
             <a th:href="@{/empleado/historial}" class="btn btn-suave">Ver historial</a>
+        </div>
+        <div class="card card-menu">
+            <h2><svg class="icono"><use href="#i-wallet"/></svg> Recibos</h2>
+            <p>Liquidación de haberes por festival</p>
+            <a th:href="@{/empleado/recibos}" class="btn btn-suave">Ver recibos</a>
         </div>
     </div>
 </div>

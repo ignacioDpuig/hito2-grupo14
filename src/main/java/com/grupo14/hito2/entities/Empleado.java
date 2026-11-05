@@ -38,4 +38,14 @@ public abstract class Empleado extends Personal {
     public boolean requiereUnidadActiva() {
         return true;
     }
+
+    // Sueldo por el festival de esa unidad, con los costos que el festival fija para su tipo.
+    // La antigüedad se cuenta al terminar el festival: así el recibo de cada festival no cambia con el tiempo
+    public Liquidacion liquidar(UnidadVenta unidad) {
+        Festival festival = unidad.getFestival();
+        ConfiguracionCostos costos = unidad.getConfiguracionCostos();
+        LocalDate finDelFestival = festival.getFechaFin();
+        return new Liquidacion(costos.getSueldoBase(), calcularPlus(costos, finDelFestival),
+                getConceptoPlus(finDelFestival), festival.getDiasDuracion());
+    }
 }

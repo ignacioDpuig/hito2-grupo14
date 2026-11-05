@@ -57,6 +57,9 @@
                     <svg class="icono"><use href="#i-store"/></svg> Datos de la unidad</a>
                 <a th:href="@{/responsable/empleados}" th:classappend="${ruta.startsWith('/responsable/empleados')} ? 'activo'">
                     <svg class="icono"><use href="#i-users"/></svg> Empleados</a>
+                <span class="menu-titulo">Números</span>
+                <a th:href="@{/responsable/sueldos}" th:classappend="${ruta.startsWith('/responsable/sueldos')} ? 'activo'">
+                    <svg class="icono"><use href="#i-wallet"/></svg> Sueldos</a>
             </th:block>
 
             <th:block th:if="${seccion == 'empleado'}">
@@ -65,6 +68,8 @@
                     <svg class="icono"><use href="#i-home"/></svg> Inicio</a>
                 <a th:href="@{/empleado/historial}" th:classappend="${ruta.startsWith('/empleado/historial')} ? 'activo'">
                     <svg class="icono"><use href="#i-history"/></svg> Historial</a>
+                <a th:href="@{/empleado/recibos}" th:classappend="${ruta.startsWith('/empleado/recibos')} ? 'activo'">
+                    <svg class="icono"><use href="#i-receipt"/></svg> Recibos</a>
             </th:block>
         </nav>
 

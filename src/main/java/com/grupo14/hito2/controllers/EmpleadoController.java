@@ -15,6 +15,7 @@ import java.security.Principal;
 public class EmpleadoController {
 
     private final CuentaService cuentaService;
+    private final LiquidacionService liquidacionService;
     private final UnidadVentaService unidadVentaService;
 
     @GetMapping("/perfil")
@@ -23,6 +24,7 @@ public class EmpleadoController {
         model.addAttribute("empleado", personal);
         model.addAttribute("puedeCargarPedidos", personal.puedeCargarPedidos());
         model.addAttribute("unidadActual", unidadVentaService.obtenerUnidadEnFestivalEnCurso(personal.getId()).orElse(null));
+        model.addAttribute("recibos", liquidacionService.obtenerRecibos(principal.getName()));
         return "empleado/empleadoIndex";
     }
 
@@ -31,5 +33,11 @@ public class EmpleadoController {
         long personalId = cuentaService.buscarPorEmail(principal.getName()).getId();
         model.addAttribute("unidades", unidadVentaService.obtenerHistorial(personalId));
         return "empleado/historial";
+    }
+
+    @GetMapping("/recibos")
+    public String verRecibos(Model model, Principal principal) {
+        model.addAttribute("recibos", liquidacionService.obtenerRecibos(principal.getName()));
+        return "empleado/recibos";
     }
 }

@@ -1,9 +1,11 @@
 package com.grupo14.hito2;
 
 import com.grupo14.hito2.dtos.FiltroEmpleadosDTO;
+import com.grupo14.hito2.dtos.LiquidacionDTO;
 import com.grupo14.hito2.entities.Festival;
 import com.grupo14.hito2.entities.Personal;
 import com.grupo14.hito2.entities.UnidadVenta;
+import com.grupo14.hito2.services.LiquidacionService;
 import com.grupo14.hito2.services.CuentaService;
 import com.grupo14.hito2.services.EmpleadoService;
 import com.grupo14.hito2.services.FestivalService;
@@ -34,15 +36,29 @@ class DatosDePruebaTests {
     @Autowired
     private FestivalService festivalService;
     @Autowired
+    private LiquidacionService liquidacionService;
+    @Autowired
     private UnidadVentaService unidadVentaService;
     @Autowired
     private UsuarioDetailsService usuarioDetailsService;
 
     @Test
-    void elAyudanteTrabajoEnDosFestivales() {
+    void elAyudanteTrabajoEnDosFestivalesYTieneUnReciboPorCada() {
         long martinId = cuentaService.buscarPorEmail("martin@email.com").getId();
+        List<LiquidacionDTO> recibos = liquidacionService.obtenerRecibos("martin@email.com");
 
         assertThat(unidadVentaService.obtenerHistorial(martinId)).hasSize(2);
+        // Primavera 2026 (41 días, 150%): sueldo base de los food trucks $110.000 + plus ayudante $100.000
+        // Festival 2024 (38 días, 150%): sueldo base general $100.000 + $100.000
+        assertThat(recibos).satisfiesExactly(
+                primavera -> {
+                    assertThat(primavera.getNombreFestival()).isEqualTo("Festival Primavera 2026");
+                    assertThat(primavera.getTotalNeto()).isEqualByComparingTo("315000");
+                },
+                anterior -> {
+                    assertThat(anterior.getNombreFestival()).isEqualTo("Festival Gastronómico 2024");
+                    assertThat(anterior.getTotalNeto()).isEqualByComparingTo("300000");
+                });
         assertThat(unidadVentaService.obtenerUnidadEnFestivalEnCurso(martinId))
                 .hasValueSatisfying(u -> assertThat(u.getNombreComercial()).isEqualTo("Food Truck La Primavera"));
     }
@@ -68,6 +84,7 @@ class DatosDePruebaTests {
         for (UnidadVenta unidad : historial) {
             assertThat(empleadoService.obtenerEmpleados(unidad, new FiltroEmpleadosDTO()))
                     .noneMatch(item -> item.empleado().getId().equals(martinId));
+            assertThat(liquidacionService.calcularLiquidacionDeEmpleadoDeLaUnidad(unidad, martinId)).isNotNull();
         }
         assertThat(unidadVentaService.obtenerHistorial(martinId)).hasSize(2);
     }
@@ -93,6 +110,19 @@ class DatosDePruebaTests {
         for (long festivalId : new long[]{1, 2, FESTIVAL_DE_OTONIO}) {
             List<UnidadVenta> unidades = unidadVentaService.obtenerUnidadesPorFestival(festivalId);
             assertThat(unidades).as("festival %s", festivalId).hasSize(5);
+        }
+    }
+
+    // Para la presentación: ninguna unidad cargada da pérdida y todas tienen quien cocine
+    @Test
+    void todasLasUnidadesTienenCocinaYRentabilidadPositiva() {
+        for (Festival festival : festivalService.obtenerTodosFestivales()) {
+            for (UnidadVenta unidad : unidadVentaService.obtenerUnidadesPorFestival(festival.getId())) {
+                assertThat(liquidacionService.obtenerLiquidacionesDeLaUnidad(unidad))
+                        .as("cocina de %s", unidad.getCodigo())
+                        .extracting(LiquidacionDTO::getCargo)
+                        .anyMatch(cargo -> !cargo.equals("Cajero"));
+            }
         }
     }
 

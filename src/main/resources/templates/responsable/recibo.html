@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Recibo de sueldo')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: menu('responsable')}"></th:block>
+
+<div class="container">
+    <div class="header">
+        <div>
+            <h1><svg class="icono"><use href="#i-receipt"/></svg> Recibo de sueldo</h1>
+            <p th:text="${recibo.nombreEmpleado + ' ' + recibo.apellidoEmpleado} + ' · generado el ' + ${#temporals.format(recibo.fechaGeneracion, 'dd/MM/yyyy')}">Empleado</p>
+        </div>
+        <div class="actions">
+            <a th:href="@{/responsable/sueldos}" class="btn btn-secondary"><svg class="icono"><use href="#i-arrow-left"/></svg> Volver a sueldos</a>
+        </div>
+    </div>
+
+    <div th:replace="~{fragments/recibo :: recibo(${recibo})}"></div>
+</div>
+</body>
+</html>

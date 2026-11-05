@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Recibos')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: menu('empleado')}"></th:block>
+
+<div class="container">
+    <div class="header">
+        <h1><svg class="icono"><use href="#i-receipt"/></svg> Mis recibos</h1>
+        <p>Un recibo por cada festival donde trabajaste, identificado con la unidad de venta que te paga</p>
+    </div>
+
+    <div th:if="${recibos.isEmpty()}" class="vacio">
+        <span class="vacio-icono"><svg class="icono"><use href="#i-receipt"/></svg></span>
+        <p>Todavía no tenés recibos.</p>
+    </div>
+
+    <th:block th:each="recibo : ${recibos}">
+        <div th:replace="~{fragments/recibo :: recibo(${recibo})}"></div>
+    </th:block>
+</div>
+</body>
+</html>
