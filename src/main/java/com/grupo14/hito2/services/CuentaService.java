@@ -59,6 +59,7 @@ public class CuentaService {
     @Transactional
     public <T extends Personal> T darDeAlta(T personal, String... nombresRoles) {
         validarEmailLibre(personal.getEmail(), null);
+        if (personal.getDni() != null) validarDniLibre(personal.getDni(), null);
         String passwordGenerada = generarPassword();
         personal.setPass(passwordEncoder.encode(passwordGenerada));
         personal.setEstaActivo(false);
@@ -94,6 +95,12 @@ public class CuentaService {
     public void validarEmailLibre(String email, Long idPropio) {
         if (personalRepository.findByEmail(email).filter(otro -> !otro.getId().equals(idPropio)).isPresent()) {
             throw new ReglaDeNegocioException("Ya existe un usuario con el email " + email);
+        }
+    }
+
+    public void validarDniLibre(Long dni, Long idPropio) {
+        if (personalRepository.findByDni(dni).filter(otro -> !otro.getId().equals(idPropio)).isPresent()) {
+            throw new ReglaDeNegocioException("Ya existe una persona con el DNI " + dni);
         }
     }
 
