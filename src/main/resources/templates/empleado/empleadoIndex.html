@@ -47,6 +47,16 @@
             <p>Liquidación de haberes por festival, con descarga en PDF</p>
             <a th:href="@{/empleado/recibos}" class="btn btn-suave">Ver recibos</a>
         </div>
+        <div class="card card-menu" th:if="${puedeCargarPedidos}">
+            <h2><svg class="icono"><use href="#i-clipboard"/></svg> Nuevo pedido</h2>
+            <p>Registrar un pedido de tu unidad de venta</p>
+            <a th:href="@{/empleado/pedidos/crear}" class="btn btn-suave">Crear pedido</a>
+        </div>
+        <div class="card card-menu">
+            <h2><svg class="icono"><use href="#i-clipboard"/></svg> Pedidos</h2>
+            <p>Ver los pedidos de tu unidad de venta</p>
+            <a th:href="@{/empleado/pedidos}" class="btn btn-suave">Ver pedidos</a>
+        </div>
     </div>
 </div>
 </body>
