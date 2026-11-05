@@ -2,17 +2,21 @@ package com.grupo14.hito2;
 
 import com.grupo14.hito2.dtos.CrearEmpleadoDTO;
 import com.grupo14.hito2.dtos.CrearUnidadVentaDTO;
+import com.grupo14.hito2.dtos.EditarEmpleadoDTO;
 import com.grupo14.hito2.dtos.EditarUnidadVentaDTO;
 import com.grupo14.hito2.dtos.EmpleadoDeUnidad;
 import com.grupo14.hito2.dtos.FiltroEmpleadosDTO;
 import com.grupo14.hito2.dtos.ReporteMayoresCanonDTO;
 import com.grupo14.hito2.entities.Cocinero;
+import com.grupo14.hito2.entities.Empleado;
 import com.grupo14.hito2.entities.Personal;
 import com.grupo14.hito2.entities.UnidadVenta;
 import com.grupo14.hito2.enums.CategoriaCocinero;
+import com.grupo14.hito2.exceptions.NoEncontradoException;
 import com.grupo14.hito2.services.CuentaService;
 import com.grupo14.hito2.services.EmpleadoService;
 import com.grupo14.hito2.services.UnidadVentaService;
+import com.grupo14.hito2.services.UsuarioDetailsService;
 import com.grupo14.hito2.exceptions.ReglaDeNegocioException;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -37,6 +41,8 @@ class ReportesIntegracionTests {
     private CuentaService cuentaService;
     @Autowired
     private EmpleadoService empleadoService;
+    @Autowired
+    private UsuarioDetailsService usuarioDetailsService;
 
     @Test
     void mayoresCanon() {
@@ -109,6 +115,40 @@ class ReportesIntegracionTests {
     }
 
     @Test
+    void dadoDeBajaEnSuUnicaUnidadNoVendeNiEntraAlSistema() {
+        Personal cajero = cuentaService.buscarPorEmail("cajero@cajero");
+        assertThat(usuarioDetailsService.loadUserByUsername("cajero@cajero").isEnabled()).isTrue();
+
+        empleadoService.darDeBajaEmpleado(cajero.getId(), unidadDe("sofia@email.com"));
+
+        assertThat(unidadVentaService.obtenerUnidadEnFestivalEnCurso(cajero.getId())).isEmpty();
+        assertThat(usuarioDetailsService.loadUserByUsername(cajero.getEmail()).isEnabled()).isFalse();
+        // Responsables y admin no dependen de una unidad activa
+        assertThat(usuarioDetailsService.loadUserByUsername("admin@admin").isEnabled()).isTrue();
+        assertThat(empleadoService.obtenerEmpleados(unidadDe("sofia@email.com"), new FiltroEmpleadosDTO()))
+                .noneMatch(item -> item.empleado().getId().equals(cajero.getId()));
+    }
+
+    @Test
+    void responsableSoloDaDeBajaEmpleadosDeSuUnidad() {
+        Personal carlos = cuentaService.buscarPorEmail("carlos@email.com");
+        long carlosId = carlos.getId();
+        long albertoId = cuentaService.buscarPorEmail("empleado@empleado").getId();
+        long mariaId = cuentaService.buscarPorEmail("responsable@responsable").getId();
+
+        empleadoService.darDeBajaEmpleado(carlosId, unidadDe("juan@email.com"));
+        UnidadVenta foodTruck = unidadDe("juan@email.com");
+        assertThat(foodTruck.tieneActivoEnStaff(carlos)).isFalse();
+
+        // Alberto es de otra unidad
+        assertThatThrownBy(() -> empleadoService.darDeBajaEmpleado(albertoId, unidadDe("juan@email.com")))
+                .isInstanceOf(ReglaDeNegocioException.class);
+        // Un responsable no es empleado: ni siquiera se encuentra
+        assertThatThrownBy(() -> empleadoService.darDeBajaEmpleado(mariaId, unidadDe("juan@email.com")))
+                .isInstanceOf(NoEncontradoException.class);
+    }
+
+    @Test
     void altaDeEmpleadoValidaDuplicadosYDatosDelTipo() {
         CrearEmpleadoDTO dto = new CrearEmpleadoDTO();
         dto.setNombre("Otro");
@@ -144,6 +184,44 @@ class ReportesIntegracionTests {
         dto.setEspecialidad("Pastas");
         dto.setFechaNacimiento(LocalDate.of(1988, 3, 20));
         return dto;
+    }
+
+    @Test
+    void unEmpleadoDadoDeBajaPuedeVolverComoUnaCuentaNuevaConLosMismosDatos() {
+        long carlosId = cuentaService.buscarPorEmail("carlos@email.com").getId();
+        empleadoService.darDeBajaEmpleado(carlosId, unidadDe("juan@email.com"));
+
+        Empleado nuevoCarlos = empleadoService.crearEmpleado(altaDeCarlos(), unidadDe("juan@email.com"));
+
+        assertThat(nuevoCarlos.getId()).isNotEqualTo(carlosId);
+        assertThat(nuevoCarlos.getEmail()).isEqualTo("carlos@email.com");
+        assertThat(nuevoCarlos.getDni()).isEqualTo(87654321L);
+        assertThat(unidadVentaService.obtenerHistorial(carlosId)).hasSize(1);
+        assertThat(empleadoService.obtenerEmpleados(unidadDe("juan@email.com"), new FiltroEmpleadosDTO()))
+                .extracting(item -> item.empleado().getId()).contains(nuevoCarlos.getId()).doesNotContain(carlosId);
+    }
+
+    @Test
+    void unaCuentaDadaDeBajaPuedeRegistrarseDeCeroEnOtraUnidad() {
+        // Alberto trabajó en el Festival 2024 (puesto de María)
+        long albertoId = cuentaService.buscarPorEmail("empleado@empleado").getId();
+        CrearEmpleadoDTO dto = new CrearEmpleadoDTO();
+        dto.setNombre("Alberto");
+        dto.setApellido("Martínez");
+        dto.setDni(22222222L);
+        dto.setEmail("empleado@empleado");
+        dto.setTipoPersonal("Cocinero");
+        dto.setCategoria(CategoriaCocinero.LAVAPLATOS);
+        dto.setFechaNacimiento(LocalDate.of(1989, 11, 10));
+
+        empleadoService.darDeBajaEmpleado(albertoId, unidadDe("responsable@responsable"));
+        Empleado nuevoAlberto = empleadoService.crearEmpleado(dto, unidadDe("sofia@email.com"));
+
+        assertThat(unidadVentaService.obtenerHistorial(albertoId)).hasSize(1);
+        assertThat(nuevoAlberto.getId()).isNotEqualTo(albertoId);
+        assertThat(nuevoAlberto.getEmail()).isEqualTo("empleado@empleado");
+        assertThat(empleadoService.obtenerEmpleados(unidadDe("sofia@email.com"), new FiltroEmpleadosDTO()))
+                .extracting(item -> item.empleado().getId()).contains(nuevoAlberto.getId()).doesNotContain(albertoId);
     }
 
     @Test
@@ -224,7 +302,7 @@ class ReportesIntegracionTests {
     }
 
     @Test
-    void filtrosDeEmpleados() {
+    void filtrosDeEmpleadosExcluyenLosDadosDeBajaPorDefecto() {
         FiltroEmpleadosDTO filtro = new FiltroEmpleadosDTO();
         filtro.setTexto("LÓP");   // Carlos López, sin importar mayúsculas
         assertThat(empleadoService.obtenerEmpleados(unidadDe("juan@email.com"), filtro))
@@ -233,6 +311,48 @@ class ReportesIntegracionTests {
         filtro.setTexto(null);
         filtro.setTipoPersonal("Cajero");
         assertThat(empleadoService.obtenerEmpleados(unidadDe("juan@email.com"), filtro)).isEmpty();
+
+        long carlosId = cuentaService.buscarPorEmail("carlos@email.com").getId();
+        empleadoService.darDeBajaEmpleado(carlosId, unidadDe("juan@email.com"));
+        assertThat(empleadoService.obtenerEmpleados(unidadDe("juan@email.com"), new FiltroEmpleadosDTO())).isEmpty();
+
+        assertThat(empleadoService.obtenerEmpleados(unidadDe("juan@email.com"), new FiltroEmpleadosDTO()))
+                .noneMatch(e -> e.empleado().getId().equals(carlosId));
+    }
+
+    @Test
+    void modificarEmpleadoDeLaUnidad() {
+        long carlosId = cuentaService.buscarPorEmail("carlos@email.com").getId();
+        EditarEmpleadoDTO dto = empleadoService.obtenerEmpleadoParaEditar(carlosId, unidadDe("juan@email.com"));
+        assertThat(dto.getTipoPersonal()).isEqualTo("Cocinero");
+        assertThat(dto.getCategoria()).isEqualTo(CategoriaCocinero.COCINERO);
+
+        dto.setNombre("Carlos Alberto");
+        dto.setCategoria(CategoriaCocinero.COCINERO_AYUDANTE);
+        empleadoService.actualizarEmpleado(carlosId, dto, unidadDe("juan@email.com"));
+
+        Cocinero carlos = (Cocinero) cuentaService.buscarPorEmail("carlos@email.com");
+        assertThat(carlos.getNombre()).isEqualTo("Carlos Alberto");
+        assertThat(carlos.getCategoria()).isEqualTo(CategoriaCocinero.COCINERO_AYUDANTE);
+    }
+
+    @Test
+    void modificarEmpleadoValidaDuplicadosPuestoYUnidad() {
+        long carlosId = cuentaService.buscarPorEmail("carlos@email.com").getId();
+        long albertoId = cuentaService.buscarPorEmail("empleado@empleado").getId();
+
+        EditarEmpleadoDTO dto = empleadoService.obtenerEmpleadoParaEditar(carlosId, unidadDe("juan@email.com"));
+        dto.setEmail("juan@email.com");
+        assertThatThrownBy(() -> empleadoService.actualizarEmpleado(carlosId, dto, unidadDe("juan@email.com")))
+                .hasMessageContaining("Ya existe un usuario con el email");
+
+        EditarEmpleadoDTO sinCategoria = empleadoService.obtenerEmpleadoParaEditar(carlosId, unidadDe("juan@email.com"));
+        sinCategoria.setCategoria(null);
+        assertThatThrownBy(() -> empleadoService.actualizarEmpleado(carlosId, sinCategoria, unidadDe("juan@email.com")))
+                .hasMessageContaining("categoría del cocinero");
+
+        assertThatThrownBy(() -> empleadoService.obtenerEmpleadoParaEditar(albertoId, unidadDe("juan@email.com")))
+                .isInstanceOf(ReglaDeNegocioException.class);
     }
 
     private UnidadVenta unidadDe(String emailResponsable) {
