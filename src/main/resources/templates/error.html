@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<!-- La usa ErrorHandler y también Spring Boot para cualquier error sin manejar (por ejemplo, una URL que no existe) -->
+<head th:replace="~{fragments/layout :: head('Error')}"></head>
+<body>
+<svg th:replace="~{fragments/iconos :: sprite}"></svg>
+<main class="auth-page">
+    <div class="auth-card centrado">
+        <span class="vacio-icono" th:switch="${status}">
+            <svg th:case="404" class="icono"><use href="#i-search"/></svg>
+            <svg th:case="403" class="icono"><use href="#i-lock"/></svg>
+            <svg th:case="*" class="icono"><use href="#i-alert"/></svg>
+        </span>
+        <h1 th:switch="${status}">
+            <span th:case="404">No encontramos lo que buscabas</span>
+            <span th:case="403">No tenés permiso para ver esta página</span>
+            <span th:case="400">No se pudo completar la operación</span>
+            <span th:case="*">Algo salió mal</span>
+        </h1>
+        <p class="subtitulo" th:if="${status != null}">Código de error <span th:text="${status}">500</span></p>
+        <div class="alert alert-danger" th:if="${mensaje != null and !#strings.isEmpty(mensaje)}">
+            <svg class="icono"><use href="#i-alert"/></svg>
+            <span th:text="${mensaje}">Detalle</span>
+        </div>
+        <div class="form-buttons">
+            <a href="javascript:history.back()" class="btn btn-secondary"><svg class="icono"><use href="#i-arrow-left"/></svg> Volver</a>
+            <a th:href="@{/dashboard}" class="btn btn-primario">Ir al inicio</a>
+        </div>
+    </div>
+</main>
+</body>
+</html>

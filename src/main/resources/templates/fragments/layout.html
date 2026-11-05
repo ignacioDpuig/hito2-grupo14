@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<!-- <head> común: <head th:replace="~{fragments/layout :: head('Título')}"></head> -->
+<head th:fragment="head(titulo)">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="color-scheme" content="light">
+    <title th:text="${titulo} + ' · Epicentro Gourmet'">Epicentro Gourmet</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='8' fill='%23550fed'/><path d='M10 7v7a2 2 0 0 0 2 2h0a2 2 0 0 0 2-2V7M12 7v18M22 19V7a4 4 0 0 0-4 4v6a2 2 0 0 0 2 2h2v6' stroke='white' stroke-width='2' fill='none' stroke-linecap='round' stroke-linejoin='round'/></svg>">
+    <link rel="stylesheet" th:href="@{/css/app.css}">
+</head>
+
+<body>
+
+<!--
+  Menú lateral de cada sección (admin, responsable, empleado): marca la página actual y tiene el usuario y el logout.
+  En celulares se despliega desde la barra superior. Uso: <th:block th:replace="~{fragments/layout :: menu('responsable')}"/>
+-->
+<th:block th:fragment="menu(seccion)" th:with="ruta=${rutaActual != null ? rutaActual : ''}">
+    <svg th:replace="~{fragments/iconos :: sprite}"></svg>
+
+    <header class="barra-movil">
+        <button type="button" class="boton-icono" aria-label="Abrir menú" onclick="document.body.classList.add('menu-abierto')">
+            <svg class="icono"><use href="#i-menu"/></svg>
+        </button>
+        <span class="marca"><span class="marca-logo"><svg class="icono"><use href="#i-utensils"/></svg></span> Epicentro Gourmet</span>
+    </header>
+
+    <aside class="sidebar" th:classappend="'sidebar-' + ${seccion}">
+        <a class="marca" th:href="@{/dashboard}">
+            <span class="marca-logo"><svg class="icono"><use href="#i-utensils"/></svg></span>
+            <span class="marca-texto">Epicentro Gourmet
+                <small th:switch="${seccion}">
+                    <span th:case="'admin'">Administrador</span>
+                    <span th:case="'responsable'">Responsable</span>
+                    <span th:case="*">Empleado</span>
+                </small>
+            </span>
+        </a>
+
+        <nav class="menu">
+        </nav>
+
+        <div class="sidebar-pie">
+            <span class="avatar" th:text="${usuario != null ? usuario.iniciales : '?'}">JG</span>
+            <div class="sidebar-usuario">
+                <strong th:text="${usuario != null ? usuario.nombre + ' ' + usuario.apellido : ''}">Juan García</strong>
+                <span>Sesión iniciada</span>
+            </div>
+            <form th:action="@{/logout}" method="post">
+                <button type="submit" class="boton-icono" title="Cerrar sesión" aria-label="Cerrar sesión">
+                    <svg class="icono"><use href="#i-logout"/></svg>
+                </button>
+            </form>
+        </div>
+    </aside>
+    <div class="velo" onclick="document.body.classList.remove('menu-abierto')"></div>
+</th:block>
+
+<!-- Monto con separador de miles y el signo antes del $: -$1.234,50 -->
+<span th:fragment="monto(valor)"
+      th:text="${valor < 0 ? '-$' + #numbers.formatDecimal(-valor, 1, 'POINT', 2, 'COMMA')
+                           : '$' + #numbers.formatDecimal(valor, 1, 'POINT', 2, 'COMMA')}">$0,00</span>
+
+<!-- Errores de validación del formulario: se inserta dentro del <form th:object="..."> -->
+<div th:fragment="erroresFormulario" th:if="${#fields.hasErrors('*')}" class="alert alert-danger" role="alert">
+    <svg class="icono"><use href="#i-alert"/></svg>
+    <div>
+        <strong>Revisá los datos:</strong>
+        <ul class="lista-errores">
+            <li th:each="mensajeError : ${#fields.errors('*')}" th:text="${mensajeError}">Campo obligatorio</li>
+        </ul>
+    </div>
+</div>
+
+<!-- Mensajes flash de éxito y error: se pueden cerrar y los de éxito se ocultan solos -->
+<div th:fragment="mensajes" th:remove="tag">
+    <div th:if="${mensaje}" class="alert alert-success alert-cerrable" data-autocerrar role="status">
+        <svg class="icono"><use href="#i-check"/></svg>
+        <span th:text="${mensaje}">Listo</span>
+        <button type="button" class="alert-cerrar" aria-label="Cerrar" onclick="this.parentElement.remove()">
+            <svg class="icono"><use href="#i-x"/></svg>
+        </button>
+    </div>
+    <div th:if="${error}" class="alert alert-danger alert-cerrable" role="alert">
+        <svg class="icono"><use href="#i-alert"/></svg>
+        <span th:text="${error}">Error</span>
+        <button type="button" class="alert-cerrar" aria-label="Cerrar" onclick="this.parentElement.remove()">
+            <svg class="icono"><use href="#i-x"/></svg>
+        </button>
+    </div>
+    <script th:if="${mensaje}">
+        setTimeout(() => document.querySelectorAll('[data-autocerrar]').forEach(alerta => {
+            alerta.style.opacity = '0';
+            setTimeout(() => alerta.remove(), 300);
+        }), 5000);
+    </script>
+</div>
+
+</body>
+</html>
