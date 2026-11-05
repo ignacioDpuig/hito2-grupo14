@@ -16,7 +16,7 @@
     </div>
 
     <th:block th:each="recibo : ${recibos}">
-        <div th:replace="~{fragments/recibo :: recibo(${recibo})}"></div>
+        <div th:replace="~{fragments/recibo :: recibo(${recibo}, @{/empleado/recibos/descargar/{festivalId}(festivalId=${recibo.festivalId})})}"></div>
     </th:block>
 </div>
 </body>
