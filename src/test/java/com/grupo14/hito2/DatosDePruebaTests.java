@@ -1,8 +1,10 @@
 package com.grupo14.hito2;
 
+import com.grupo14.hito2.dtos.FiltroEmpleadosDTO;
 import com.grupo14.hito2.entities.Festival;
 import com.grupo14.hito2.entities.UnidadVenta;
 import com.grupo14.hito2.services.CuentaService;
+import com.grupo14.hito2.services.EmpleadoService;
 import com.grupo14.hito2.services.FestivalService;
 import com.grupo14.hito2.services.UnidadVentaService;
 import com.grupo14.hito2.services.UsuarioDetailsService;
@@ -27,6 +29,8 @@ class DatosDePruebaTests {
     private CuentaService cuentaService;
 
     @Autowired
+    private EmpleadoService empleadoService;
+    @Autowired
     private FestivalService festivalService;
     @Autowired
     private UnidadVentaService unidadVentaService;
@@ -34,9 +38,11 @@ class DatosDePruebaTests {
     private UsuarioDetailsService usuarioDetailsService;
 
     @Test
-    void laCajeraDadaDeBajaNoEntra() {
+    void laCajeraDadaDeBajaNoEntraNiApareceEnLaGestionDeEmpleados() {
         assertThat(usuarioDetailsService.loadUserByUsername("rocio@email.com").isEnabled()).isFalse();
 
+        assertThat(empleadoService.obtenerEmpleados(unidadDe("responsable@responsable"), new FiltroEmpleadosDTO()))
+                .noneMatch(e -> e.empleado().getEmail().equals("rocio@email.com"));
     }
 
     @Test

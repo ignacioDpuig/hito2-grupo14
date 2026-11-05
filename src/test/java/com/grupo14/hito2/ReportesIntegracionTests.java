@@ -1,11 +1,17 @@
 package com.grupo14.hito2;
 
+import com.grupo14.hito2.dtos.CrearEmpleadoDTO;
 import com.grupo14.hito2.dtos.CrearUnidadVentaDTO;
 import com.grupo14.hito2.dtos.EditarUnidadVentaDTO;
+import com.grupo14.hito2.dtos.EmpleadoDeUnidad;
+import com.grupo14.hito2.dtos.FiltroEmpleadosDTO;
 import com.grupo14.hito2.dtos.ReporteMayoresCanonDTO;
+import com.grupo14.hito2.entities.Cocinero;
 import com.grupo14.hito2.entities.Personal;
 import com.grupo14.hito2.entities.UnidadVenta;
+import com.grupo14.hito2.enums.CategoriaCocinero;
 import com.grupo14.hito2.services.CuentaService;
+import com.grupo14.hito2.services.EmpleadoService;
 import com.grupo14.hito2.services.UnidadVentaService;
 import com.grupo14.hito2.exceptions.ReglaDeNegocioException;
 import org.junit.jupiter.api.Test;
@@ -14,6 +20,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
@@ -28,6 +35,8 @@ class ReportesIntegracionTests {
     private UnidadVentaService unidadVentaService;
     @Autowired
     private CuentaService cuentaService;
+    @Autowired
+    private EmpleadoService empleadoService;
 
     @Test
     void mayoresCanon() {
@@ -44,6 +53,13 @@ class ReportesIntegracionTests {
         assertThatThrownBy(() -> unidadVentaService.obtenerMayoresCanon(1, -1)).isInstanceOf(ReglaDeNegocioException.class);
         assertThatThrownBy(() -> unidadVentaService.obtenerMayoresCanon(1, 21)).isInstanceOf(ReglaDeNegocioException.class);
         assertThat(unidadVentaService.obtenerMayoresCanon(1, 20)).hasSize(5);
+    }
+
+    @Test
+    void responsableSoloVeLosEmpleadosDeSuUnidad() {
+        List<EmpleadoDeUnidad> empleados = empleadoService.obtenerEmpleados(unidadDe("juan@email.com"), new FiltroEmpleadosDTO());
+
+        assertThat(empleados).extracting(e -> e.empleado().getEmail()).containsExactly("carlos@email.com");
     }
 
     @Test
@@ -90,6 +106,44 @@ class ReportesIntegracionTests {
         assertThatThrownBy(() -> unidadVentaService.modificarUnidad(unidadDe("juan@email.com"), dto))
                 .isInstanceOf(ReglaDeNegocioException.class)
                 .hasMessageContaining("patente");
+    }
+
+    @Test
+    void altaDeEmpleadoValidaDuplicadosYDatosDelTipo() {
+        CrearEmpleadoDTO dto = new CrearEmpleadoDTO();
+        dto.setNombre("Otro");
+        dto.setApellido("Carlos");
+        dto.setDni(99_000_111L);
+        dto.setEmail("carlos@email.com");
+        dto.setTipoPersonal("Cajero");
+        dto.setTurno("Noche");
+        dto.setFechaNacimiento(LocalDate.of(1990, 1, 1));
+        assertThatThrownBy(() -> empleadoService.crearEmpleado(dto, unidadDe("juan@email.com")))
+                .hasMessageContaining("Ya existe un usuario con el email");
+
+        dto.setEmail("nuevo@test.com");
+        dto.setDni(87654321L); // el DNI de Carlos, que ya trabaja en la unidad de Juan
+        assertThatThrownBy(() -> empleadoService.crearEmpleado(dto, unidadDe("juan@email.com")))
+                .hasMessageContaining("no se puede volver a incorporar");
+
+        dto.setDni(99_000_111L);
+        dto.setTipoPersonal("Cocinero");
+        assertThatThrownBy(() -> empleadoService.crearEmpleado(dto, unidadDe("juan@email.com")))
+                .hasMessageContaining("categoría del cocinero");
+    }
+
+    // Los datos de Carlos López (cocinero de la unidad de Juan, Festival 2024) en un formulario de alta
+    private CrearEmpleadoDTO altaDeCarlos() {
+        CrearEmpleadoDTO dto = new CrearEmpleadoDTO();
+        dto.setNombre("Carlos");
+        dto.setApellido("López");
+        dto.setDni(87654321L);
+        dto.setEmail("carlos@email.com");
+        dto.setTipoPersonal("Cocinero");
+        dto.setCategoria(CategoriaCocinero.COCINERO_AYUDANTE);
+        dto.setEspecialidad("Pastas");
+        dto.setFechaNacimiento(LocalDate.of(1988, 3, 20));
+        return dto;
     }
 
     @Test
@@ -167,6 +221,18 @@ class ReportesIntegracionTests {
         edicion.setTiempoMontaje(100f);
         assertThatThrownBy(() -> unidadVentaService.modificarUnidad(unidadDe("responsable@responsable"), edicion))
                 .hasMessageContaining("canon da negativo");
+    }
+
+    @Test
+    void filtrosDeEmpleados() {
+        FiltroEmpleadosDTO filtro = new FiltroEmpleadosDTO();
+        filtro.setTexto("LÓP");   // Carlos López, sin importar mayúsculas
+        assertThat(empleadoService.obtenerEmpleados(unidadDe("juan@email.com"), filtro))
+                .extracting(e -> e.empleado().getEmail()).containsExactly("carlos@email.com");
+
+        filtro.setTexto(null);
+        filtro.setTipoPersonal("Cajero");
+        assertThat(empleadoService.obtenerEmpleados(unidadDe("juan@email.com"), filtro)).isEmpty();
     }
 
     private UnidadVenta unidadDe(String emailResponsable) {
