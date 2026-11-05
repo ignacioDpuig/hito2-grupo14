@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Registrar unidad')}"></head>
+<body>
+<svg th:replace="~{fragments/iconos :: sprite}"></svg>
+<section class="hero">
+    <div class="publica-barra">
+        <a class="marca" th:href="@{/}"><span class="marca-logo"><svg class="icono"><use href="#i-utensils"/></svg></span> Epicentro Gourmet</a>
+        <a th:href="@{/login}" class="btn btn-claro btn-sm">Iniciar sesión</a>
+    </div>
+    <div class="hero-contenido">
+        <h1>Registrá tu unidad de venta</h1>
+        <p>Cargá los datos de tu food truck o puesto y tu nombre y mail. Te enviamos una contraseña temporal: la unidad queda habilitada cuando ingresás y elegís la tuya.</p>
+    </div>
+</section>
+
+<div class="container angosto">
+    <div class="card">
+        <h2><svg class="icono"><use href="#i-store"/></svg> Nueva unidad de venta</h2>
+
+        <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+        <form th:action="@{/registro}" th:object="${registroDTO}" method="post">
+            <div th:replace="~{fragments/layout :: erroresFormulario}"></div>
+            <div class="section-title"><svg class="icono"><use href="#i-clipboard"/></svg> Datos de la unidad</div>
+            <div class="form-group">
+                <label for="nombreComercial">Nombre comercial</label>
+                <input type="text" id="nombreComercial" th:field="*{nombreComercial}" required>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="codigo">Código <small>(10 caracteres)</small></label>
+                    <input type="text" id="codigo" th:field="*{codigo}" placeholder="Ej: FTSABOR001 (FT = Food Truck, PD = Puesto)" minlength="10" maxlength="10" required>
+                </div>
+                <div class="form-group">
+                    <label for="superficie">Superficie (m²)</label>
+                    <input type="number" id="superficie" th:field="*{superficie}" step="0.1" min="0" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="festivalId">Festival</label>
+                <select id="festivalId" th:field="*{festivalId}" required>
+                    <option value="">Seleccionar festival</option>
+                    <option th:each="festival : ${festivales}" th:value="${festival.id}" th:text="${festival.nombre}"></option>
+                </select>
+            </div>
+
+            <div class="section-title"><svg class="icono"><use href="#i-truck"/></svg> Tipo de unidad</div>
+            <div class="form-group">
+                <label for="tipoUnidad">Tipo</label>
+                <select id="tipoUnidad" th:field="*{tipoUnidad}" onchange="mostrarSeccion()" required>
+                    <option value="">Seleccionar tipo</option>
+                    <option value="FoodTruck">Food Truck</option>
+                    <option value="PuestoDesarmable">Puesto desarmable</option>
+                </select>
+            </div>
+            <div id="seccionFoodTruck" class="form-section form-row">
+                <div class="form-group">
+                    <label for="patente">Patente</label>
+                    <input type="text" id="patente" th:field="*{patente}">
+                </div>
+                <div class="form-group">
+                    <label for="estaConectado">¿Requiere conexión eléctrica?</label>
+                    <select id="estaConectado" th:field="*{estaConectado}">
+                        <option value="false">No</option>
+                        <option value="true">Sí</option>
+                    </select>
+                </div>
+            </div>
+            <div id="seccionPuestoDesarmable" class="form-section form-row">
+                <div class="form-group">
+                    <label for="cantidadCarpas">Cantidad de carpas</label>
+                    <input type="number" id="cantidadCarpas" th:field="*{cantidadCarpas}" min="1">
+                </div>
+                <div class="form-group">
+                    <label for="tiempoMontaje">Tiempo de montaje (minutos)</label>
+                    <input type="number" id="tiempoMontaje" th:field="*{tiempoMontaje}" step="0.5" min="0">
+                </div>
+            </div>
+
+            <div class="section-title"><svg class="icono"><use href="#i-user-plus"/></svg> Responsable</div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="nombreResponsable">Nombre</label>
+                    <input type="text" id="nombreResponsable" th:field="*{nombreResponsable}" required>
+                </div>
+                <div class="form-group">
+                    <label for="apellidoResponsable">Apellido</label>
+                    <input type="text" id="apellidoResponsable" th:field="*{apellidoResponsable}" required>
+                </div>
+            </div>
+            <div class="form-group">
+                <label for="emailResponsable">Email <small>(es tu usuario: te llega una contraseña temporal)</small></label>
+                <input type="email" id="emailResponsable" th:field="*{emailResponsable}" placeholder="nombre@email.com" required>
+            </div>
+
+            <div class="form-buttons">
+                <button type="submit" class="btn btn-primario">Registrar mi unidad</button>
+                <a th:href="@{/}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+    // Muestra los campos propios del tipo elegido y los vuelve obligatorios
+    function mostrarSeccion() {
+        const tipo = document.getElementById('tipoUnidad').value;
+        const esFoodTruck = tipo === 'FoodTruck';
+        const esPuesto = tipo === 'PuestoDesarmable';
+        document.getElementById('seccionFoodTruck').classList.toggle('active', esFoodTruck);
+        document.getElementById('seccionPuestoDesarmable').classList.toggle('active', esPuesto);
+        document.getElementById('patente').required = esFoodTruck;
+        document.getElementById('cantidadCarpas').required = esPuesto;
+        document.getElementById('tiempoMontaje').required = esPuesto;
+    }
+    mostrarSeccion();
+</script>
+</body>
+</html>
