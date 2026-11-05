@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Editar empleado')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: menu('responsable')}"></th:block>
+
+<div class="container angosto">
+    <div class="card">
+        <h2><svg class="icono"><use href="#i-edit"/></svg> Editar empleado</h2>
+        <p class="subtitulo">El tipo de empleado no se puede cambiar. Si se cambia el email, cambia su usuario de ingreso.</p>
+
+        <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+        <form th:action="@{/responsable/empleados/{id}/editar(id=${empleadoId})}" th:object="${editarEmpleadoDTO}" method="post">
+            <div th:replace="~{fragments/layout :: erroresFormulario}"></div>
+            <input type="hidden" th:field="*{tipoPersonal}">
+
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="nombre">Nombre</label>
+                    <input type="text" id="nombre" th:field="*{nombre}" required>
+                </div>
+                <div class="form-group">
+                    <label for="apellido">Apellido</label>
+                    <input type="text" id="apellido" th:field="*{apellido}" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="dni">DNI</label>
+                    <input type="number" id="dni" th:field="*{dni}" required>
+                </div>
+                <div class="form-group">
+                    <label for="email">Email</label>
+                    <input type="email" id="email" th:field="*{email}" required>
+                </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label for="fechaNacimiento">Fecha de nacimiento</label>
+                    <input type="date" id="fechaNacimiento" th:field="*{fechaNacimiento}" required>
+                </div>
+                <div class="form-group">
+                    <label for="fechaIngreso">Fecha de ingreso</label>
+                    <input type="date" id="fechaIngreso" th:field="*{fechaIngreso}" required>
+                </div>
+            </div>
+
+            <div class="section-title" th:text="*{tipoPersonal}">Puesto</div>
+            <th:block th:if="*{tipoPersonal == 'Cocinero'}">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="especialidad">Especialidad</label>
+                        <input type="text" id="especialidad" th:field="*{especialidad}">
+                    </div>
+                    <div class="form-group">
+                        <label for="categoria">Categoría</label>
+                        <select id="categoria" th:field="*{categoria}" required>
+                            <option value="COCINERO">Cocinero</option>
+                            <option value="COCINERO_AYUDANTE">Cocinero ayudante</option>
+                            <option value="LAVAPLATOS">Lavaplatos</option>
+                        </select>
+                    </div>
+                </div>
+            </th:block>
+            <div class="form-group" th:if="*{tipoPersonal == 'Cajero'}">
+                <label for="turno">Turno</label>
+                <select id="turno" th:field="*{turno}" required>
+                    <option value="Mañana">Mañana</option>
+                    <option value="Noche">Noche</option>
+                </select>
+            </div>
+
+            <div class="form-buttons">
+                <button type="submit" class="btn btn-primario">Guardar cambios</button>
+                <a th:href="@{/responsable/empleados}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

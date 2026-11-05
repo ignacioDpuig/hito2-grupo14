@@ -43,6 +43,7 @@
                 <th>Cargo</th>
                 <th>Ingreso</th>
                 <th>Estado</th>
+                <th>Acciones</th>
             </tr>
             </thead>
             <tbody>
@@ -61,6 +62,15 @@
                 <td>
                     <span th:if="${empleado.estaActivo}" class="estado-ok"><svg class="icono"><use href="#i-check"/></svg> Activo</span>
                     <span th:if="${!empleado.estaActivo}" class="estado-pendiente"><svg class="icono"><use href="#i-clock"/></svg> Pendiente de activación</span>
+                </td>
+                <td class="acciones">
+                    <a th:href="@{/responsable/empleados/{id}/editar(id=${empleado.id})}"
+                       class="btn btn-sm btn-suave">Editar</a>
+                    <form method="post"
+                          th:action="@{/responsable/empleados/{id}/eliminar(id=${empleado.id})}"
+                          onsubmit="return confirm('¿Dar de baja definitivamente a este empleado? Ya no podrá volver a ingresar al sistema ni incorporarse a otra unidad.')">
+                        <button type="submit" class="btn btn-sm btn-danger">Dar de baja</button>
+                    </form>
                 </td>
             </tr>
             </tbody>
