@@ -6,6 +6,7 @@ import com.grupo14.hito2.dtos.EditarEmpleadoDTO;
 import com.grupo14.hito2.dtos.EditarUnidadVentaDTO;
 import com.grupo14.hito2.dtos.FiltroEmpleadosDTO;
 import com.grupo14.hito2.entities.UnidadVenta;
+import com.grupo14.hito2.services.LiquidacionService;
 import com.grupo14.hito2.services.EmpleadoService;
 import com.grupo14.hito2.services.UnidadVentaService;
 import com.grupo14.hito2.exceptions.ReglaDeNegocioException;
@@ -28,6 +29,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 public class ResponsableController {
 
     private final EmpleadoService empleadoService;
+    private final LiquidacionService liquidacionService;
     private final UnidadVentaService unidadVentaService;
 
     // Inicio con los números de la unidad de un vistazo
@@ -125,5 +127,20 @@ public class ResponsableController {
             redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());
         }
         return "redirect:/responsable/empleados";
+    }
+
+    // ─── Sueldos ──────────────────────────────────────────────────────────────
+
+    @GetMapping("/sueldos")
+    public String verSueldos(Model model, @UnidadDelResponsable UnidadVenta unidad) {
+        model.addAttribute("liquidaciones", liquidacionService.obtenerLiquidacionesDeLaUnidad(unidad));
+        return "responsable/sueldos";
+    }
+
+    @GetMapping("/sueldos/{empleadoId}")
+    public String verRecibo(@PathVariable Long empleadoId, @UnidadDelResponsable UnidadVenta unidad, Model model) {
+        model.addAttribute("recibo",
+                liquidacionService.calcularLiquidacionDeEmpleadoDeLaUnidad(unidad, empleadoId));
+        return "responsable/recibo";
     }
 }
