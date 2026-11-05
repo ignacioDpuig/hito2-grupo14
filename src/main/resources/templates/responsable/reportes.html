@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Reportes')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: menu('responsable')}"></th:block>
+
+<div class="container" th:with="r=${reportes}">
+    <div class="header">
+        <div>
+            <h1><svg class="icono"><use href="#i-chart"/></svg> Reportes de <span th:text="${r.nombreUnidad}">mi unidad</span></h1>
+            <p>
+                <span th:text="${r.nombreFestival}">Festival</span> ·
+                del <span th:text="${#temporals.format(r.fechaInicio, 'dd/MM/yyyy')}">01/01/2025</span>
+                al <span th:text="${#temporals.format(r.fechaFin, 'dd/MM/yyyy')}">31/01/2025</span>
+            </p>
+        </div>
+        <div class="actions">
+            <a th:href="@{/responsable/reportes/fechas}" class="btn btn-suave"><svg class="icono"><use href="#i-calendar"/></svg> Rentabilidad entre fechas</a>
+        </div>
+    </div>
+
+    <!-- Lo importante de un vistazo; el detalle está en las tarjetas de abajo -->
+    <div class="stat-grid">
+        <div class="stat">
+            <span class="stat-etiqueta">Total vendido</span>
+            <span class="stat-valor"><span th:replace="~{fragments/layout :: monto(${r.recaudacion.totalVendido})}"></span></span>
+            <span class="stat-detalle" th:text="${r.recaudacion.cantidadPedidos} + ' pedidos'">0 pedidos</span>
+        </div>
+        <div class="stat" th:classappend="${r.rentabilidad.rentabilidadNeta >= 0} ? 'positivo' : 'negativo'">
+            <span class="stat-etiqueta">Rentabilidad neta</span>
+            <span class="stat-valor"><span th:replace="~{fragments/layout :: monto(${r.rentabilidad.rentabilidadNeta})}"></span></span>
+            <span class="stat-detalle">Después de platos, sueldos y canon</span>
+        </div>
+        <div class="stat">
+            <span class="stat-etiqueta">Plato estrella</span>
+            <span class="stat-valor" th:text="${r.platoEstrella != null ? r.platoEstrella.nombre : '—'}">Plato</span>
+            <span class="stat-detalle" th:if="${r.platoEstrella != null}" th:text="${r.platoEstrella.cantidadVendida} + ' vendidos'">0 vendidos</span>
+            <span class="stat-detalle" th:unless="${r.platoEstrella != null}">Todavía no hay ventas</span>
+        </div>
+    </div>
+
+    <div class="card-grid">
+        <!-- Recaudación -->
+        <div class="card">
+            <h2><svg class="icono"><use href="#i-wallet"/></svg> Recaudación</h2>
+            <table>
+                <tr><td>Total vendido</td>
+                    <td class="monto"><span th:replace="~{fragments/layout :: monto(${r.recaudacion.totalVendido})}"></span></td></tr>
+                <tr><td>Costo de los platos</td>
+                    <td class="monto"><span th:replace="~{fragments/layout :: monto(${-r.recaudacion.totalCostos})}"></span></td></tr>
+                <tr><td>Pedidos</td><td class="monto" th:text="${r.recaudacion.cantidadPedidos}">0</td></tr>
+                <tr class="total"><td>Ganancia bruta</td>
+                    <td class="monto"><span th:replace="~{fragments/layout :: monto(${r.recaudacion.rentabilidadBruta})}"></span></td></tr>
+            </table>
+        </div>
+
+        <!-- Plato estrella -->
+        <div class="card">
+            <h2><svg class="icono"><use href="#i-star"/></svg> Plato estrella</h2>
+            <p th:if="${r.platoEstrella == null}" class="alert alert-info">Todavía no hay ventas en este festival.</p>
+            <table th:if="${r.platoEstrella != null}">
+                <tr><td>Plato</td><td class="monto"><strong th:text="${r.platoEstrella.nombre}">Plato</strong></td></tr>
+                <tr><td>Unidades vendidas</td><td class="monto" th:text="${r.platoEstrella.cantidadVendida}">0</td></tr>
+                <tr><td>Precio de venta</td>
+                    <td class="monto"><span th:replace="~{fragments/layout :: monto(${r.platoEstrella.precioVenta})}"></span></td></tr>
+                <tr class="total"><td>Total recaudado</td>
+                    <td class="monto"><span th:replace="~{fragments/layout :: monto(${r.platoEstrella.totalRecaudado})}"></span></td></tr>
+            </table>
+        </div>
+
+        <!-- Rentabilidad neta -->
+        <div class="card" th:with="neta=${r.rentabilidad.rentabilidadNeta}">
+            <h2><svg class="icono"><use href="#i-coins"/></svg> Rentabilidad neta</h2>
+            <table>
+                <tr><td>Recaudación</td>
+                    <td class="monto"><span th:replace="~{fragments/layout :: monto(${r.rentabilidad.recaudacion})}"></span></td></tr>
+                <tr><td>Costo de los platos</td>
+                    <td class="monto"><span th:replace="~{fragments/layout :: monto(${-r.rentabilidad.costosPlatos})}"></span></td></tr>
+                <tr><td>Sueldos</td>
+                    <td class="monto"><span th:replace="~{fragments/layout :: monto(${-r.rentabilidad.sueldos})}"></span></td></tr>
+                <tr><td>Canon</td>
+                    <td class="monto"><span th:replace="~{fragments/layout :: monto(${-r.rentabilidad.canon})}"></span></td></tr>
+                <tr class="total" th:classappend="${neta >= 0} ? 'positivo' : 'negativo'">
+                    <td>Rentabilidad neta</td>
+                    <td class="monto"><span th:replace="~{fragments/layout :: monto(${neta})}"></span></td></tr>
+            </table>
+        </div>
+    </div>
+</div>
+</body>
+</html>

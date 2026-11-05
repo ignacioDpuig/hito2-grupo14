@@ -62,6 +62,10 @@
                 <span class="menu-titulo">Números</span>
                 <a th:href="@{/responsable/sueldos}" th:classappend="${ruta.startsWith('/responsable/sueldos')} ? 'activo'">
                     <svg class="icono"><use href="#i-wallet"/></svg> Sueldos</a>
+                <a th:href="@{/responsable/reportes}" th:classappend="${ruta == '/responsable/reportes'} ? 'activo'">
+                    <svg class="icono"><use href="#i-chart"/></svg> Reportes</a>
+                <a th:href="@{/responsable/reportes/fechas}" th:classappend="${ruta == '/responsable/reportes/fechas'} ? 'activo'">
+                    <svg class="icono"><use href="#i-calendar"/></svg> Entre fechas</a>
             </th:block>
 
             <th:block th:if="${seccion == 'empleado'}">

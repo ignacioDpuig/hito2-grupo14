@@ -4,7 +4,7 @@
 <body>
 <th:block th:replace="~{fragments/layout :: menu('responsable')}"></th:block>
 
-<div class="container">
+<div class="container" th:with="r=${reportes}">
     <div class="header">
         <div>
             <h1 th:text="'Hola, ' + ${usuario.nombre}">Hola</h1>
@@ -22,12 +22,24 @@
 
     <div class="stat-grid">
         <div class="stat">
+            <span class="stat-etiqueta"><svg class="icono"><use href="#i-wallet"/></svg> Total vendido</span>
+            <span class="stat-valor"><span th:replace="~{fragments/layout :: monto(${r.recaudacion.totalVendido})}"></span></span>
+            <span class="stat-detalle" th:text="${r.recaudacion.cantidadPedidos} + ' pedidos'">0 pedidos</span>
+        </div>
+        <div class="stat" th:classappend="${r.rentabilidad.rentabilidadNeta >= 0} ? 'positivo' : 'negativo'">
+            <span class="stat-etiqueta"><svg class="icono"><use href="#i-chart"/></svg> Rentabilidad neta</span>
+            <span class="stat-valor"><span th:replace="~{fragments/layout :: monto(${r.rentabilidad.rentabilidadNeta})}"></span></span>
+            <span class="stat-detalle">Después de platos, sueldos y canon</span>
+        </div>
+        <div class="stat">
             <span class="stat-etiqueta"><svg class="icono"><use href="#i-users"/></svg> Empleados activos</span>
             <span class="stat-valor" th:text="${empleadosActivos}">0</span>
+            <span class="stat-detalle"><span th:replace="~{fragments/layout :: monto(${r.rentabilidad.sueldos})}"></span> en sueldos</span>
         </div>
         <div class="stat">
             <span class="stat-etiqueta"><svg class="icono"><use href="#i-utensils"/></svg> Platos en el menú</span>
             <span class="stat-valor" th:text="${platosActivos}">0</span>
+            <span class="stat-detalle" th:text="${r.platoEstrella != null ? 'Estrella: ' + r.platoEstrella.nombre : 'Todavía sin ventas'}">Estrella</span>
         </div>
     </div>
 
@@ -46,6 +58,11 @@
             <h2><svg class="icono"><use href="#i-wallet"/></svg> Sueldos</h2>
             <p>Liquidación de cada empleado, con su recibo en pantalla y en PDF</p>
             <a th:href="@{/responsable/sueldos}" class="btn btn-suave">Ver sueldos</a>
+        </div>
+        <div class="card card-menu">
+            <h2><svg class="icono"><use href="#i-chart"/></svg> Reportes</h2>
+            <p>Recaudación, plato estrella y rentabilidad neta, también entre dos fechas</p>
+            <a th:href="@{/responsable/reportes}" class="btn btn-suave">Ver reportes</a>
         </div>
         <div class="card card-menu">
             <h2><svg class="icono"><use href="#i-store"/></svg> Datos de la unidad</h2>
