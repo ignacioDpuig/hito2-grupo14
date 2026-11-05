@@ -6,6 +6,7 @@ import com.grupo14.hito2.dtos.EditarEmpleadoDTO;
 import com.grupo14.hito2.dtos.EditarUnidadVentaDTO;
 import com.grupo14.hito2.dtos.EmpleadoDeUnidad;
 import com.grupo14.hito2.dtos.FiltroEmpleadosDTO;
+import com.grupo14.hito2.dtos.LiquidacionDTO;
 import com.grupo14.hito2.dtos.ReporteMayoresCanonDTO;
 import com.grupo14.hito2.entities.Cocinero;
 import com.grupo14.hito2.entities.Empleado;
@@ -13,6 +14,7 @@ import com.grupo14.hito2.entities.Personal;
 import com.grupo14.hito2.entities.UnidadVenta;
 import com.grupo14.hito2.enums.CategoriaCocinero;
 import com.grupo14.hito2.exceptions.NoEncontradoException;
+import com.grupo14.hito2.services.LiquidacionService;
 import com.grupo14.hito2.services.CuentaService;
 import com.grupo14.hito2.services.EmpleadoService;
 import com.grupo14.hito2.services.UnidadVentaService;
@@ -38,6 +40,8 @@ class ReportesIntegracionTests {
     @Autowired
     private UnidadVentaService unidadVentaService;
     @Autowired
+    private LiquidacionService liquidacionService;
+    @Autowired
     private CuentaService cuentaService;
     @Autowired
     private EmpleadoService empleadoService;
@@ -59,6 +63,15 @@ class ReportesIntegracionTests {
         assertThatThrownBy(() -> unidadVentaService.obtenerMayoresCanon(1, -1)).isInstanceOf(ReglaDeNegocioException.class);
         assertThatThrownBy(() -> unidadVentaService.obtenerMayoresCanon(1, 21)).isInstanceOf(ReglaDeNegocioException.class);
         assertThat(unidadVentaService.obtenerMayoresCanon(1, 20)).hasSize(5);
+    }
+
+    @Test
+    void recibosDelEmpleadoYResponsableSinRecibos() {
+        List<LiquidacionDTO> recibos = liquidacionService.obtenerRecibos("empleado@empleado");
+
+        assertThat(recibos).hasSize(1);
+        assertThat(recibos.get(0).getTotalNeto()).isEqualByComparingTo("225000");
+        assertThat(liquidacionService.obtenerRecibos("juan@email.com")).isEmpty();
     }
 
     @Test
@@ -112,6 +125,22 @@ class ReportesIntegracionTests {
         assertThatThrownBy(() -> unidadVentaService.modificarUnidad(unidadDe("juan@email.com"), dto))
                 .isInstanceOf(ReglaDeNegocioException.class)
                 .hasMessageContaining("patente");
+    }
+
+    @Test
+    void unEmpleadoDadoDeBajaSeLiquidaIgualYSeRestaEnLaRentabilidad() {
+        long carlosId = cuentaService.buscarPorEmail("carlos@email.com").getId();
+
+        empleadoService.darDeBajaEmpleado(carlosId, unidadDe("juan@email.com"));
+
+        List<LiquidacionDTO> sueldos = liquidacionService.obtenerLiquidacionesDeLaUnidad(unidadDe("juan@email.com"));
+        assertThat(sueldos).singleElement().satisfies(l -> {
+            assertThat(l.isDadoDeBaja()).isTrue();
+            assertThat(l.getTotalNeto()).isEqualByComparingTo("375000");
+            // El recibo no muestra el DNI ni el email anonimizados por la baja definitiva
+            assertThat(l.getDniParaMostrar()).isEqualTo("Dado de baja");
+            assertThat(l.getEmailParaMostrar()).isEqualTo("Dado de baja");
+        });
     }
 
     @Test
@@ -353,6 +382,27 @@ class ReportesIntegracionTests {
 
         assertThatThrownBy(() -> empleadoService.obtenerEmpleadoParaEditar(albertoId, unidadDe("juan@email.com")))
                 .isInstanceOf(ReglaDeNegocioException.class);
+    }
+
+    @Test
+    void responsableVeLaLiquidacionDeSusEmpleados() {
+        List<LiquidacionDTO> liquidaciones = liquidacionService.obtenerLiquidacionesDeLaUnidad(unidadDe("juan@email.com"));
+        assertThat(liquidaciones).singleElement().satisfies(l -> {
+            assertThat(l.getNombreEmpleado()).isEqualTo("Carlos");
+            assertThat(l.getTotalNeto()).isEqualByComparingTo("375000");
+        });
+
+        long albertoId = cuentaService.buscarPorEmail("empleado@empleado").getId();
+        assertThatThrownBy(() -> liquidacionService.calcularLiquidacionDeEmpleadoDeLaUnidad(unidadDe("juan@email.com"), albertoId))
+                .isInstanceOf(NoEncontradoException.class);
+    }
+
+    @Test
+    void noHayReciboDeUnFestivalDondeNoTrabajo() {
+        long festivalPrimaveraId = unidadVentaService.obtenerUnidadPorCodigo("FTPRIMAV26").orElseThrow().getFestival().getId();
+        assertThatThrownBy(() -> liquidacionService.calcularLiquidacion("carlos@email.com", festivalPrimaveraId))
+                .isInstanceOf(NoEncontradoException.class)
+                .hasMessageContaining("No trabajaste");
     }
 
     private UnidadVenta unidadDe(String emailResponsable) {
