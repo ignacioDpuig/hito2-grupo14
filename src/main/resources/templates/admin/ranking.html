@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Ranking')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: menu('admin')}"></th:block>
+
+<div class="container">
+    <div class="header">
+        <h1><svg class="icono"><use href="#i-trophy"/></svg> Ranking de unidades</h1>
+        <p>Recaudación total del festival y sus unidades habilitadas ordenadas por lo vendido</p>
+    </div>
+
+    <form th:action="@{/admin/ranking}" method="get" class="filtros">
+        <div class="form-group">
+            <label for="festivalId">Festival</label>
+            <select id="festivalId" name="festivalId" required>
+                <option value="">Seleccionar festival</option>
+                <option th:each="f : ${festivales}" th:value="${f.id}" th:text="${f.nombre}"
+                        th:selected="${f.id == festivalSeleccionado}"></option>
+            </select>
+        </div>
+        <button type="submit" class="btn btn-primario">Ver ranking</button>
+    </form>
+
+    <!-- Reporte de Recaudación (ReporteVentaDTO): el total del festival -->
+    <th:block th:if="${recaudacion != null}">
+        <h2 class="section-title" th:text="'Recaudación de ' + ${recaudacion.nombreFestival}">Recaudación</h2>
+        <div class="stat-grid">
+            <div class="stat">
+                <span class="stat-etiqueta">Total vendido</span>
+                <span class="stat-valor"><span th:replace="~{fragments/layout :: monto(${recaudacion.totalVendido})}"></span></span>
+                <span class="stat-detalle" th:text="${recaudacion.cantidadPedidos} + ' pedidos'">0 pedidos</span>
+            </div>
+            <div class="stat">
+                <span class="stat-etiqueta">Costo de los platos</span>
+                <span class="stat-valor"><span th:replace="~{fragments/layout :: monto(${recaudacion.totalCostos})}"></span></span>
+            </div>
+            <div class="stat positivo">
+                <span class="stat-etiqueta">Ganancia bruta</span>
+                <span class="stat-valor"><span th:replace="~{fragments/layout :: monto(${recaudacion.rentabilidadBruta})}"></span></span>
+            </div>
+        </div>
+    </th:block>
+
+    <p th:if="${ranking != null and #lists.isEmpty(ranking)}" class="alert alert-info">Este festival no tiene unidades de venta habilitadas.</p>
+
+    <div class="tabla-scroll" th:if="${ranking != null and !#lists.isEmpty(ranking)}">
+        <table>
+            <thead>
+            <tr>
+                <th>Puesto</th>
+                <th>Nombre comercial</th>
+                <th>Código</th>
+                <th>Tipo</th>
+                <th class="monto">Recaudación</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="u, stat : ${ranking}">
+                <td><span class="posicion" th:classappend="${stat.count <= 3} ? 'posicion-' + ${stat.count}" th:text="${stat.count}">1</span></td>
+                <td th:text="${u.nombreComercial}">Unidad</td>
+                <td th:text="${u.codigo}">Código</td>
+                <td th:text="${u.tipoUnidad}">Tipo</td>
+                <td class="monto"><span th:replace="~{fragments/layout :: monto(${u.recaudacion})}"></span></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>
