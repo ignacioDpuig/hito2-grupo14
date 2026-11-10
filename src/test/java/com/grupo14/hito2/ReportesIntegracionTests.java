@@ -11,6 +11,8 @@ import com.grupo14.hito2.dtos.EditarUnidadVentaDTO;
 import com.grupo14.hito2.dtos.EmpleadoDeUnidad;
 import com.grupo14.hito2.dtos.FiltroEmpleadosDTO;
 import com.grupo14.hito2.dtos.LiquidacionDTO;
+import com.grupo14.hito2.dtos.RentabilidadEntreFechasDTO;
+import com.grupo14.hito2.dtos.ReportesUnidadDTO;
 import com.grupo14.hito2.dtos.ReporteMayoresCanonDTO;
 import com.grupo14.hito2.entities.Cocinero;
 import com.grupo14.hito2.entities.Empleado;
@@ -24,6 +26,7 @@ import com.grupo14.hito2.services.PedidoService;
 import com.grupo14.hito2.services.CuentaService;
 import com.grupo14.hito2.services.EmpleadoService;
 import com.grupo14.hito2.services.PlatoService;
+import com.grupo14.hito2.services.ReporteUnidadService;
 import com.grupo14.hito2.services.UnidadVentaService;
 import com.grupo14.hito2.services.UsuarioDetailsService;
 import com.grupo14.hito2.exceptions.ReglaDeNegocioException;
@@ -52,6 +55,8 @@ class ReportesIntegracionTests {
     private CuentaService cuentaService;
     @Autowired
     private EmpleadoService empleadoService;
+    @Autowired
+    private ReporteUnidadService reporteUnidadService;
     @Autowired
     private PlatoService platoService;
     @Autowired
@@ -96,6 +101,48 @@ class ReportesIntegracionTests {
     void empleadoTrabajaEnSuUnidad() {
         long carlosId = cuentaService.buscarPorEmail("carlos@email.com").getId();
         assertThat(unidadVentaService.buscarPorStaff(carlosId).getCodigo()).isEqualTo("FTSDELSUR1");
+    }
+
+    @Test
+    void reportesDelResponsable() {
+        ReportesUnidadDTO reportes = reporteUnidadService.generarReportes(unidadDe("juan@email.com"));
+
+        assertThat(reportes.getRecaudacion().getTotalVendido()).isEqualByComparingTo("1500000");
+        assertThat(reportes.getRecaudacion().getTotalCostos()).isEqualByComparingTo("446000");
+        assertThat(reportes.getRecaudacion().getCantidadPedidos()).isEqualTo(2);
+        assertThat(reportes.getPlatoEstrella().getNombre()).isEqualTo("Pizza Margherita");
+        assertThat(reportes.getPlatoEstrella().getCantidadVendida()).isEqualTo(70);
+        assertThat(reportes.getRentabilidad().getSueldos()).isEqualByComparingTo("375000");
+        assertThat(reportes.getRentabilidad().getCanon()).isEqualByComparingTo("14750");
+        assertThat(reportes.getRentabilidad().getRentabilidadNeta()).isEqualByComparingTo("664250");
+    }
+
+    @Test
+    void darDeBajaUnPlatoNoCambiaLasVentasQueYaOcurrieron() {
+        UnidadVenta unidad = unidadDe("juan@email.com");
+        long margheritaId = platoService.obtenerTodosLosPlatosPorUnidad(unidad.getId()).stream()
+                .filter(p -> p.getNombre().equals("Pizza Margherita")).findFirst().orElseThrow().getId();
+
+        platoService.darDeBajaPlato(margheritaId, unidad);
+        ReportesUnidadDTO reportes = reporteUnidadService.generarReportes(unidadDe("juan@email.com"));
+
+        assertThat(reportes.getRecaudacion().getTotalCostos()).isEqualByComparingTo("446000");
+        assertThat(reportes.getRentabilidad().getRentabilidadNeta()).isEqualByComparingTo("664250");
+        assertThat(reportes.getPlatoEstrella().getNombre()).isEqualTo("Pizza Margherita");
+    }
+
+    @Test
+    void cambiarElPrecioDeUnPlatoNoCambiaLasVentasQueYaOcurrieron() {
+        UnidadVenta unidad = unidadDe("juan@email.com");
+        long margheritaId = platoService.obtenerTodosLosPlatosPorUnidad(unidad.getId()).stream()
+                .filter(p -> p.getNombre().equals("Pizza Margherita")).findFirst().orElseThrow().getId();
+
+        platoService.actualizarPlato(margheritaId, unidad, new CrearPlatoDTO("Pizza Margherita", new BigDecimal("9000"), new BigDecimal("99000")));
+        ReportesUnidadDTO reportes = reporteUnidadService.generarReportes(unidadDe("juan@email.com"));
+
+        assertThat(reportes.getRecaudacion().getTotalVendido()).isEqualByComparingTo("1500000");
+        assertThat(reportes.getRecaudacion().getTotalCostos()).isEqualByComparingTo("446000");
+        assertThat(reportes.getPlatoEstrella().getPrecioVenta()).isEqualByComparingTo("99000");
     }
 
     @Test
@@ -199,6 +246,40 @@ class ReportesIntegracionTests {
     }
 
     @Test
+    void rentabilidadEntreFechasProrrateaSueldosYCanon() {
+        // 20/12 y 21/12: 2 de los 38 días. Ventas $860.000 - platos $258.000 - 2/38 de sueldos y canon
+        RentabilidadEntreFechasDTO reporte = reporteUnidadService.calcularRentabilidadEntreFechas(unidadDe("juan@email.com"),
+                LocalDate.of(2024, 12, 20), LocalDate.of(2024, 12, 21));
+
+        assertThat(reporte.getDiasPeriodo()).isEqualTo(2);
+        assertThat(reporte.getRecaudacion()).isEqualByComparingTo("860000");
+        assertThat(reporte.getCostosPlatos()).isEqualByComparingTo("258000");
+        // Sueldos y canon prorrateados y redondeados al centavo: 375.000 × 2/38 y 14.750 × 2/38
+        assertThat(reporte.getSueldos()).isEqualByComparingTo("19736.84");
+        assertThat(reporte.getCanon()).isEqualByComparingTo("776.32");
+        assertThat(reporte.getRentabilidadNeta()).isEqualByComparingTo("581486.84");
+    }
+
+    @Test
+    void rentabilidadDeTodoElFestivalCoincideConLaTotal() {
+        RentabilidadEntreFechasDTO reporte = reporteUnidadService.calcularRentabilidadEntreFechas(unidadDe("juan@email.com"),
+                LocalDate.of(2024, 12, 15), LocalDate.of(2025, 1, 21));
+        assertThat(reporte.getRentabilidadNeta()).isEqualByComparingTo("664250");
+    }
+
+    @Test
+    void rentabilidadEntreFechasValidaElRango() {
+        assertThatThrownBy(() -> reporteUnidadService.calcularRentabilidadEntreFechas(unidadDe("juan@email.com"),
+                LocalDate.of(2024, 12, 22), LocalDate.of(2024, 12, 20)))
+                .isInstanceOf(ReglaDeNegocioException.class)
+                .hasMessageContaining("posterior");
+        assertThatThrownBy(() -> reporteUnidadService.calcularRentabilidadEntreFechas(unidadDe("juan@email.com"),
+                LocalDate.of(2024, 12, 1), LocalDate.of(2024, 12, 20)))
+                .isInstanceOf(ReglaDeNegocioException.class)
+                .hasMessageContaining("dentro del festival");
+    }
+
+    @Test
     void cierreDeCajaDelCajeroEnElFestivalEnCurso() {
         long cajeroId = cuentaService.buscarPorEmail("cajero@cajero").getId();
         UnidadVenta unidad = unidadVentaService.buscarUnidadEnFestivalEnCurso(cajeroId);
@@ -254,6 +335,7 @@ class ReportesIntegracionTests {
     @Test
     void unEmpleadoDadoDeBajaSeLiquidaIgualYSeRestaEnLaRentabilidad() {
         long carlosId = cuentaService.buscarPorEmail("carlos@email.com").getId();
+        BigDecimal antes = reporteUnidadService.generarReportes(unidadDe("juan@email.com")).getRentabilidad().getRentabilidadNeta();
 
         empleadoService.darDeBajaEmpleado(carlosId, unidadDe("juan@email.com"));
 
@@ -265,6 +347,8 @@ class ReportesIntegracionTests {
             assertThat(l.getDniParaMostrar()).isEqualTo("Dado de baja");
             assertThat(l.getEmailParaMostrar()).isEqualTo("Dado de baja");
         });
+        assertThat(reporteUnidadService.generarReportes(unidadDe("juan@email.com")).getRentabilidad().getRentabilidadNeta())
+                .isEqualByComparingTo(antes);
     }
 
     @Test

@@ -10,6 +10,7 @@ import com.grupo14.hito2.services.CuentaService;
 import com.grupo14.hito2.services.EmpleadoService;
 import com.grupo14.hito2.services.FestivalService;
 import com.grupo14.hito2.services.PlatoService;
+import com.grupo14.hito2.services.ReporteUnidadService;
 import com.grupo14.hito2.services.UnidadVentaService;
 import com.grupo14.hito2.services.UsuarioDetailsService;
 import org.junit.jupiter.api.Test;
@@ -32,6 +33,7 @@ class DatosDePruebaTests {
     @Autowired
     private CuentaService cuentaService;
 
+
     @Autowired
     private EmpleadoService empleadoService;
     @Autowired
@@ -40,6 +42,8 @@ class DatosDePruebaTests {
     private LiquidacionService liquidacionService;
     @Autowired
     private UnidadVentaService unidadVentaService;
+    @Autowired
+    private ReporteUnidadService reporteUnidadService;
     @Autowired
     private PlatoService platoService;
     @Autowired
@@ -64,6 +68,12 @@ class DatosDePruebaTests {
                 });
         assertThat(unidadVentaService.obtenerUnidadEnFestivalEnCurso(martinId))
                 .hasValueSatisfying(u -> assertThat(u.getNombreComercial()).isEqualTo("Food Truck La Primavera"));
+    }
+
+    @Test
+    void losFoodTrucksDePrimaveraUsanSusCostosPropios() {
+        // 20 m² × $700, sin conexión eléctrica
+        assertThat(reporteUnidadService.generarReportes(unidadDe("sofia@email.com")).getRentabilidad().getCanon()).isEqualByComparingTo("14000");
     }
 
     @Test
@@ -112,6 +122,7 @@ class DatosDePruebaTests {
                     assertThat(u.isActiva()).isTrue();
                     assertThat(u.getFestival().getFechaInicio()).isEqualTo(LocalDate.of(2025, 4, 1));
                     assertThat(u.getFestival().getFechaFin()).isEqualTo(LocalDate.of(2025, 4, 16));
+                    assertThat(reporteUnidadService.generarReportes(u).getRentabilidad().getRentabilidadNeta()).isPositive();
                 });
         assertThat(unidadVentaService.obtenerMayoresCanon(FESTIVAL_DE_OTONIO, 3)).hasSize(3);
         assertThat(usuarioDetailsService.loadUserByUsername("pablo@email.com").isEnabled()).isTrue();
@@ -123,6 +134,10 @@ class DatosDePruebaTests {
         for (long festivalId : new long[]{1, 2, FESTIVAL_DE_OTONIO}) {
             List<UnidadVenta> unidades = unidadVentaService.obtenerUnidadesPorFestival(festivalId);
             assertThat(unidades).as("festival %s", festivalId).hasSize(5);
+            assertThat(unidades).allSatisfy(unidad ->
+                    assertThat(reporteUnidadService.generarReportes(unidad).getRentabilidad().getRentabilidadNeta())
+                            .as("rentabilidad de " + unidad.getNombreComercial())
+                            .isPositive());
         }
     }
 
@@ -131,6 +146,9 @@ class DatosDePruebaTests {
     void todasLasUnidadesTienenCocinaYRentabilidadPositiva() {
         for (Festival festival : festivalService.obtenerTodosFestivales()) {
             for (UnidadVenta unidad : unidadVentaService.obtenerUnidadesPorFestival(festival.getId())) {
+                assertThat(reporteUnidadService.generarReportes(unidad).getRentabilidad().getRentabilidadNeta())
+                        .as("rentabilidad neta de %s", unidad.getCodigo())
+                        .isPositive();
                 assertThat(liquidacionService.obtenerLiquidacionesDeLaUnidad(unidad))
                         .as("cocina de %s", unidad.getCodigo())
                         .extracting(LiquidacionDTO::getCargo)

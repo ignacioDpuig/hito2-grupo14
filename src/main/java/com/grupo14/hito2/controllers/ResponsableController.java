@@ -12,11 +12,13 @@ import com.grupo14.hito2.services.LiquidacionService;
 import com.grupo14.hito2.services.PDFService;
 import com.grupo14.hito2.services.EmpleadoService;
 import com.grupo14.hito2.services.PlatoService;
+import com.grupo14.hito2.services.ReporteUnidadService;
 import com.grupo14.hito2.services.UnidadVentaService;
 import com.grupo14.hito2.exceptions.ReglaDeNegocioException;
 import jakarta.validation.Valid;
 import org.springframework.validation.BindingResult;
 import lombok.RequiredArgsConstructor;
+import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -25,9 +27,11 @@ import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
+import java.time.LocalDate;
 
 // Todas las operaciones son sobre la unidad del responsable logueado, que resuelve @UnidadDelResponsable
 @Controller
@@ -37,6 +41,7 @@ public class ResponsableController {
 
     private final EmpleadoService empleadoService;
     private final PlatoService platoService;
+    private final ReporteUnidadService reporteUnidadService;
     private final LiquidacionService liquidacionService;
     private final PDFService pdfService;
     private final UnidadVentaService unidadVentaService;
@@ -45,6 +50,7 @@ public class ResponsableController {
     @GetMapping("/dashboard")
     public String dashboard(Model model, @UnidadDelResponsable UnidadVenta unidad) {
         model.addAttribute("unidad", unidad);
+        model.addAttribute("reportes", reporteUnidadService.generarReportes(unidad));
         model.addAttribute("empleadosActivos", empleadoService.obtenerEmpleados(unidad, new FiltroEmpleadosDTO()).size());
         model.addAttribute("platosActivos", platoService.obtenerPlatosActivosPorUnidad(unidad.getId()).size());
         return "responsable/responsableIndex";
@@ -233,5 +239,33 @@ public class ResponsableController {
     public ResponseEntity<byte[]> descargarRecibo(@PathVariable Long empleadoId, @UnidadDelResponsable UnidadVenta unidad) throws IOException {
         LiquidacionDTO recibo = liquidacionService.calcularLiquidacionDeEmpleadoDeLaUnidad(unidad, empleadoId);
         return DescargaPdf.de(pdfService.generarReciboPDF(recibo), "recibo_" + recibo.getDni() + ".pdf");
+    }
+
+    // ─── Reportes ─────────────────────────────────────────────────────────────
+
+    @GetMapping("/reportes")
+    public String verReportes(Model model, @UnidadDelResponsable UnidadVenta unidad) {
+        model.addAttribute("reportes", reporteUnidadService.generarReportes(unidad));
+        return "responsable/reportes";
+    }
+
+    // Sin fechas muestra solo el formulario
+    @GetMapping("/reportes/fechas")
+    public String verRentabilidadEntreFechas(
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate inicio,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fin,
+            Model model, @UnidadDelResponsable UnidadVenta unidad) {
+        model.addAttribute("festival", unidad.getFestival());
+        model.addAttribute("inicio", inicio);
+        model.addAttribute("fin", fin);
+        if (inicio != null && fin != null) {
+            try {
+                model.addAttribute("reporte",
+                        reporteUnidadService.calcularRentabilidadEntreFechas(unidad, inicio, fin));
+            } catch (ReglaDeNegocioException e) {
+                model.addAttribute("error", e.getMessage());
+            }
+        }
+        return "responsable/reportes-fechas";
     }
 }
