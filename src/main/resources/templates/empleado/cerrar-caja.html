@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Cierre de caja')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: menu('empleado')}"></th:block>
+
+<div class="container">
+    <div class="header">
+        <div>
+            <h1><svg class="icono"><use href="#i-lock"/></svg> Cierre de caja</h1>
+            <p th:text="${cierre.nombreUnidad} + ' · ' + ${cierre.nombreFestival} + ' · ' + ${#temporals.format(cierre.fecha, 'dd/MM/yyyy')}">Unidad</p>
+        </div>
+        <span th:if="${cierre.cerrada}" class="chip chip-baja"><svg class="icono"><use href="#i-lock"/></svg> Caja cerrada</span>
+        <span th:unless="${cierre.cerrada}" class="chip chip-ok">● Caja abierta</span>
+    </div>
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <div class="stat-grid">
+        <div class="stat">
+            <span class="stat-etiqueta"><svg class="icono"><use href="#i-clipboard"/></svg> Pedidos del día</span>
+            <span class="stat-valor" th:text="${cierre.cantidadPedidos}">0</span>
+        </div>
+        <div class="stat positivo">
+            <span class="stat-etiqueta"><svg class="icono"><use href="#i-wallet"/></svg> Total vendido hoy</span>
+            <span class="stat-valor"><span th:replace="~{fragments/layout :: monto(${cierre.totalVendido})}"></span></span>
+        </div>
+    </div>
+
+    <div class="card destacado neutro" th:if="${cierre.cerrada}">
+        <span class="destacado-icono"><svg class="icono"><use href="#i-check"/></svg></span>
+        <div>Caja cerrada por <strong th:text="${cierre.cerradaPor}">Cajero</strong>: no se cargan más pedidos hasta mañana.</div>
+    </div>
+    <div class="card destacado" th:unless="${cierre.cerrada}">
+        <span class="destacado-icono"><svg class="icono"><use href="#i-lock"/></svg></span>
+        <div class="crecer">
+            <strong>¿Terminó la jornada?</strong><br>
+            <span class="subtitulo">Al cerrar la caja se guardan estos totales y no se cargan más pedidos hasta mañana.</span>
+        </div>
+        <form th:action="@{/empleado/cerrar-caja}" method="post"
+              onsubmit="return confirm('Después de cerrar la caja no se pueden cargar más pedidos hoy. ¿Cerrar?')">
+            <button type="submit" class="btn btn-primario"><svg class="icono"><use href="#i-lock"/></svg> Cerrar caja</button>
+        </form>
+    </div>
+
+    <div class="card" th:if="${!#lists.isEmpty(cierresAnteriores)}">
+        <h2><svg class="icono"><use href="#i-book"/></svg> Cierres de la unidad</h2>
+        <table>
+            <thead>
+            <tr><th>Fecha</th><th>Cajero</th><th class="monto">Pedidos</th><th class="monto">Total</th></tr>
+            </thead>
+            <tbody>
+            <tr th:each="c : ${cierresAnteriores}">
+                <td th:text="${#temporals.format(c.fecha, 'dd/MM/yyyy')}">01/01/2025</td>
+                <td th:text="${c.cerradaPor}">Cajero</td>
+                <td class="monto" th:text="${c.cantidadPedidos}">0</td>
+                <td class="monto"><span th:replace="~{fragments/layout :: monto(${c.totalVendido})}"></span></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

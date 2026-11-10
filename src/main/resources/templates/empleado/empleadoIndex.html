@@ -57,6 +57,11 @@
             <p>Ver los pedidos de tu unidad de venta</p>
             <a th:href="@{/empleado/pedidos}" class="btn btn-suave">Ver pedidos</a>
         </div>
+        <div class="card card-menu" th:if="${puedeCargarPedidos}">
+            <h2><svg class="icono"><use href="#i-lock"/></svg> Cerrar caja</h2>
+            <p>Lo vendido hoy por tu unidad; al cerrarla no se cargan más pedidos hasta mañana</p>
+            <a th:href="@{/empleado/cerrar-caja}" class="btn btn-suave">Cerrar caja</a>
+        </div>
     </div>
 </div>
 </body>
