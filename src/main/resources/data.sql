@@ -89,6 +89,30 @@ SET @plato2_2 = LAST_INSERT_ID();
 INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Choripán', 2400.00, 8000.00, @unidad2_id);
 SET @plato2_3 = LAST_INSERT_ID();
 
+-- 12. Insertar Pedidos para Unidad 1
+INSERT INTO pedido (fecha_pedido, festival_id, unidad_venta_id) VALUES ('2024-12-20', @festival_id, @unidad1_id);
+SET @pedido1_1 = LAST_INSERT_ID();
+INSERT INTO pedido (fecha_pedido, festival_id, unidad_venta_id) VALUES ('2024-12-22', @festival_id, @unidad1_id);
+SET @pedido1_2 = LAST_INSERT_ID();
+
+-- 13. Insertar Pedidos para Unidad 2
+INSERT INTO pedido (fecha_pedido, festival_id, unidad_venta_id) VALUES ('2024-12-21', @festival_id, @unidad2_id);
+SET @pedido2_1 = LAST_INSERT_ID();
+INSERT INTO pedido (fecha_pedido, festival_id, unidad_venta_id) VALUES ('2024-12-23', @festival_id, @unidad2_id);
+SET @pedido2_2 = LAST_INSERT_ID();
+
+-- 14. Insertar Detalles de Pedidos Unidad 1
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido1_1, @plato1_1, 50, 10000.00, 3000.00);
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido1_1, @plato1_2, 30, 12000.00, 3600.00);
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido1_2, @plato1_3, 40, 11000.00, 3200.00);
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido1_2, @plato1_1, 20, 10000.00, 3000.00);
+
+-- 15. Insertar Detalles de Pedidos Unidad 2
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido2_1, @plato2_1, 20, 16000.00, 5000.00);
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido2_1, @plato2_2, 30, 15000.00, 4400.00);
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido2_2, @plato2_3, 60, 8000.00, 2400.00);
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido2_2, @plato2_1, 10, 16000.00, 5000.00);
+
 -- 16. Configuración de Costos
 INSERT INTO configuracion_costos (costo_superficie, costo_montaje, plus_electricidad, sueldo_base, plus_cocinero, plus_cocinero_ayudante, plus_lavaplatos, monto_antiguedad, festival_id)
 VALUES (500, 10, 2000, 100000, 150000, 100000, 50000, 5000, @festival_id);
@@ -132,6 +156,18 @@ INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALU
 SET @plato3_1 = LAST_INSERT_ID();
 INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Hamburguesa Completa', 3000.00, 9000.00, @unidad3_id);
 SET @plato3_2 = LAST_INSERT_ID();
+
+-- 21. Pedido de hoy, para que el cierre de caja tenga datos: 12 × $2.500 + 3 × $9.000 = $57.000
+INSERT INTO pedido (fecha_pedido, festival_id, unidad_venta_id) VALUES (CURRENT_DATE, @festival2_id, @unidad3_id);
+SET @pedido3_1 = LAST_INSERT_ID();
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido3_1, @plato3_1, 12, 2500.00, 800.00);
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido3_1, @plato3_2, 3, 9000.00, 3000.00);
+-- Ventas de exhibición de un día anterior: mantiene intacto el cierre de caja de hoy y cubre los sueldos.
+INSERT INTO pedido (fecha_pedido, festival_id, unidad_venta_id)
+VALUES (CURRENT_DATE - INTERVAL '1' DAY, @festival2_id, @unidad3_id);
+SET @pedido3_2 = LAST_INSERT_ID();
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido3_2, @plato3_1, 200, 2500.00, 800.00);
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido3_2, @plato3_2, 100, 9000.00, 3000.00);
 
 -- 22. Costos propios de los Food Trucks en Primavera 2026: le ganan a la configuración general (sección 17).
 --     Food Truck La Primavera: canon 20 m² × $700 = $14.000; su cajero cobra con sueldo base $110.000
@@ -186,6 +222,11 @@ INSERT INTO puesto_desarmable (id, cantidad_carpas, tiempo_montaje) VALUES (@uni
 INSERT INTO unidad_personal (unidad_id, personal_id) VALUES (@unidad4_id, @responsable4_id);
 INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Empanadas Andinas', 1000, 5000, @unidad4_id);
 SET @plato4_1 = LAST_INSERT_ID();
+INSERT INTO pedido (fecha_pedido, festival_id, unidad_venta_id)
+VALUES ('2025-04-10', @festival3_id, @unidad4_id);
+SET @pedido4_1 = LAST_INSERT_ID();
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario)
+VALUES (@pedido4_1, @plato4_1, 120, 5000, 1000);
 
 -- 27. Unidades de ejemplo: cada festival queda con cinco unidades y ventas de margen alto.
 INSERT INTO personal (nombre, apellido, dni, fecha_nacimiento, fecha_ingreso, email, pass, esta_activo) VALUES
@@ -294,36 +335,69 @@ INSERT INTO unidad_personal (unidad_id, personal_id) VALUES (@unidad15_id, (SELE
 -- Cada unidad nueva vende 50 porciones a $20.000 con costo de $5.000: margen de $750.000 antes de canon y sueldos.
 INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Menú Demo 2024 1', 5000, 20000, @unidad5_id);
 SET @plato5_id = LAST_INSERT_ID();
+INSERT INTO pedido (fecha_pedido, festival_id, unidad_venta_id) VALUES ('2024-12-20', @festival_id, @unidad5_id);
+SET @pedido5_id = LAST_INSERT_ID();
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido5_id, @plato5_id, 50, 20000, 5000);
 
 INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Menú Demo 2024 2', 5000, 20000, @unidad6_id);
 SET @plato6_id = LAST_INSERT_ID();
+INSERT INTO pedido (fecha_pedido, festival_id, unidad_venta_id) VALUES ('2024-12-20', @festival_id, @unidad6_id);
+SET @pedido6_id = LAST_INSERT_ID();
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido6_id, @plato6_id, 50, 20000, 5000);
 
 INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Menú Demo 2024 3', 5000, 20000, @unidad7_id);
 SET @plato7_id = LAST_INSERT_ID();
+INSERT INTO pedido (fecha_pedido, festival_id, unidad_venta_id) VALUES ('2024-12-20', @festival_id, @unidad7_id);
+SET @pedido7_id = LAST_INSERT_ID();
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido7_id, @plato7_id, 50, 20000, 5000);
 
 INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Menú Demo 2026 1', 5000, 20000, @unidad8_id);
 SET @plato8_id = LAST_INSERT_ID();
+INSERT INTO pedido (fecha_pedido, festival_id, unidad_venta_id) VALUES (CURRENT_DATE, @festival2_id, @unidad8_id);
+SET @pedido8_id = LAST_INSERT_ID();
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido8_id, @plato8_id, 50, 20000, 5000);
 
 INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Menú Demo 2026 2', 5000, 20000, @unidad9_id);
 SET @plato9_id = LAST_INSERT_ID();
+INSERT INTO pedido (fecha_pedido, festival_id, unidad_venta_id) VALUES (CURRENT_DATE, @festival2_id, @unidad9_id);
+SET @pedido9_id = LAST_INSERT_ID();
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido9_id, @plato9_id, 50, 20000, 5000);
 
 INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Menú Demo 2026 3', 5000, 20000, @unidad10_id);
 SET @plato10_id = LAST_INSERT_ID();
+INSERT INTO pedido (fecha_pedido, festival_id, unidad_venta_id) VALUES (CURRENT_DATE, @festival2_id, @unidad10_id);
+SET @pedido10_id = LAST_INSERT_ID();
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido10_id, @plato10_id, 50, 20000, 5000);
 
 INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Menú Demo 2026 4', 5000, 20000, @unidad11_id);
 SET @plato11_id = LAST_INSERT_ID();
+INSERT INTO pedido (fecha_pedido, festival_id, unidad_venta_id) VALUES (CURRENT_DATE, @festival2_id, @unidad11_id);
+SET @pedido11_id = LAST_INSERT_ID();
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido11_id, @plato11_id, 50, 20000, 5000);
 
 INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Menú Demo Otoño 1', 5000, 20000, @unidad12_id);
 SET @plato12_id = LAST_INSERT_ID();
+INSERT INTO pedido (fecha_pedido, festival_id, unidad_venta_id) VALUES ('2025-04-10', @festival3_id, @unidad12_id);
+SET @pedido12_id = LAST_INSERT_ID();
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido12_id, @plato12_id, 50, 20000, 5000);
 
 INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Menú Demo Otoño 2', 5000, 20000, @unidad13_id);
 SET @plato13_id = LAST_INSERT_ID();
+INSERT INTO pedido (fecha_pedido, festival_id, unidad_venta_id) VALUES ('2025-04-10', @festival3_id, @unidad13_id);
+SET @pedido13_id = LAST_INSERT_ID();
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido13_id, @plato13_id, 50, 20000, 5000);
 
 INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Menú Demo Otoño 3', 5000, 20000, @unidad14_id);
 SET @plato14_id = LAST_INSERT_ID();
+INSERT INTO pedido (fecha_pedido, festival_id, unidad_venta_id) VALUES ('2025-04-10', @festival3_id, @unidad14_id);
+SET @pedido14_id = LAST_INSERT_ID();
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido14_id, @plato14_id, 50, 20000, 5000);
 
 INSERT INTO plato (nombre, costo_produccion, precio_venta, unidad_venta_id) VALUES ('Menú Demo Otoño 4', 5000, 20000, @unidad15_id);
 SET @plato15_id = LAST_INSERT_ID();
+INSERT INTO pedido (fecha_pedido, festival_id, unidad_venta_id) VALUES ('2025-04-10', @festival3_id, @unidad15_id);
+SET @pedido15_id = LAST_INSERT_ID();
+INSERT INTO detalle_pedido (pedido_id, plato_id, cantidad, precio_unitario, costo_unitario) VALUES (@pedido15_id, @plato15_id, 50, 20000, 5000);
 
 -- 28. Staff de las unidades de ejemplo: un cocinero y un cajero en cada una (pass: pass456).
 --     Con las 50 porciones vendidas, todas las unidades quedan con rentabilidad neta positiva.

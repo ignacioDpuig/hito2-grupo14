@@ -33,6 +33,9 @@ public class Festival {
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "festival", cascade = CascadeType.ALL)
     private Set<UnidadVenta> unidades = new HashSet<>();
 
+    @OneToMany(fetch = FetchType.LAZY, mappedBy = "festival")
+    private Set<Pedido> pedidos = new HashSet<>();
+
     @OneToMany(fetch = FetchType.LAZY, mappedBy = "festival", cascade = CascadeType.ALL)
     private Set<ConfiguracionCostos> configuraciones = new HashSet<>();
 

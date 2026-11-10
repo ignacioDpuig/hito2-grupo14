@@ -72,6 +72,13 @@
                     <svg class="icono"><use href="#i-history"/></svg> Historial</a>
                 <a th:href="@{/empleado/recibos}" th:classappend="${ruta.startsWith('/empleado/recibos')} ? 'activo'">
                     <svg class="icono"><use href="#i-receipt"/></svg> Recibos</a>
+                <span class="menu-titulo">Ventas</span>
+                <a th:href="@{/empleado/pedidos}" th:classappend="${ruta == '/empleado/pedidos'} ? 'activo'">
+                    <svg class="icono"><use href="#i-clipboard"/></svg> Pedidos</a>
+                <th:block th:if="${usuario != null and usuario.operaCaja}">
+                    <a th:href="@{/empleado/pedidos/crear}" th:classappend="${ruta == '/empleado/pedidos/crear'} ? 'activo'">
+                        <svg class="icono"><use href="#i-plus"/></svg> Nuevo pedido</a>
+                </th:block>
             </th:block>
         </nav>
 

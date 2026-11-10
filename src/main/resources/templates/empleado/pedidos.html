@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Pedidos')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: menu('empleado')}"></th:block>
+
+<div class="container">
+    <div class="header">
+        <h1><svg class="icono"><use href="#i-clipboard"/></svg> Pedidos de la unidad</h1>
+        <p>
+            <span th:text="${unidad.nombreComercial}">Unidad</span> ·
+            <span th:text="${unidad.festival.nombre}">Festival</span>
+        </p>
+    </div>
+
+    <p th:if="${#lists.isEmpty(pedidos)}" class="alert alert-info">Todavía no hay pedidos para esta unidad.</p>
+
+    <div class="tabla-scroll" th:unless="${#lists.isEmpty(pedidos)}">
+        <table>
+            <thead>
+            <tr>
+                <th>N.º</th>
+                <th>Fecha</th>
+                <th>Detalle</th>
+                <th class="monto">Total</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr th:each="pedido : ${pedidos}">
+                <td th:text="${pedido.id}">1</td>
+                <td th:text="${#temporals.format(pedido.fechaPedido, 'dd/MM/yyyy')}">01/01/2025</td>
+                <td>
+                    <ul>
+                        <li th:each="detalle : ${pedido.detallesPedido}"
+                            th:text="${detalle.cantidad + ' × ' + detalle.plato.nombre}">
+                            1 × Plato
+                        </li>
+                    </ul>
+                </td>
+                <td class="monto"><span th:replace="~{fragments/layout :: monto(${pedido.total})}"></span></td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+</body>
+</html>

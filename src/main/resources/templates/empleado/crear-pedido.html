@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Nuevo pedido')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: menu('empleado')}"></th:block>
+
+<div class="container angosto">
+    <div th:replace="~{fragments/layout :: mensajes}"></div>
+
+    <div class="card">
+        <h2><svg class="icono"><use href="#i-clipboard"/></svg> Nuevo pedido</h2>
+        <p class="subtitulo">
+            <span th:text="${unidad.nombreComercial}">Unidad</span> ·
+            <span th:text="${unidad.festival.nombre}">Festival</span>
+        </p>
+
+        <p th:unless="${unidad.activa}" class="alert alert-danger">
+            Tu unidad todavía no está habilitada: su responsable tiene que activar la cuenta antes de poder cargar pedidos.
+        </p>
+
+        <form th:action="@{/empleado/pedidos/crear}" method="post" th:if="${unidad.activa}">
+            <div id="lineasDetalle"></div>
+            <button type="button" class="btn btn-sm btn-secondary" onclick="agregarLinea()"><svg class="icono"><use href="#i-plus"/></svg> Agregar plato</button>
+            <div class="recibo-total pedido-total">
+                <span>Total del pedido</span>
+                <strong id="totalPedido">$0,00</strong>
+            </div>
+            <div class="form-buttons">
+                <button type="submit" class="btn btn-primario">Crear pedido</button>
+                <a th:href="@{/empleado/perfil}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Opciones de platos renderizadas por Thymeleaf; el script las copia en cada línea nueva -->
+<template id="opcionesPlatos" th:if="${unidad.activa}">
+    <option value="">Seleccionar plato</option>
+    <option th:each="plato : ${platos}" th:value="${plato.id}" th:attr="data-precio=${plato.precioVenta}"
+            th:text="${plato.nombre} + ' · $' + ${#numbers.formatDecimal(plato.precioVenta, 1, 'POINT', 2, 'COMMA')}"></option>
+</template>
+
+<script th:if="${unidad.activa}">
+    let lineaCount = 0;
+
+    function agregarLinea() {
+        const opciones = document.getElementById('opcionesPlatos').innerHTML;
+        const id = 'linea-' + lineaCount;
+        document.getElementById('lineasDetalle').insertAdjacentHTML('beforeend', `
+            <div class="linea-detalle" id="${id}">
+                <div class="form-group">
+                    <label>Plato</label>
+                    <select name="detalles[${lineaCount}].platoId" required>${opciones}</select>
+                </div>
+                <div class="form-group">
+                    <label>Cantidad</label>
+                    <input type="number" name="detalles[${lineaCount}].cantidad" min="1" value="1" required>
+                </div>
+                <button type="button" class="btn btn-danger" onclick="document.getElementById('${id}').remove(); actualizarTotal()">Quitar</button>
+            </div>`);
+        lineaCount++;
+        actualizarTotal();
+    }
+
+    // Solo informativo: el precio que vale es el que guarda el servidor al crear el pedido
+    const pesos = new Intl.NumberFormat('es-AR', { style: 'currency', currency: 'ARS' });
+    function actualizarTotal() {
+        let total = 0;
+        document.querySelectorAll('.linea-detalle').forEach(linea => {
+            const opcion = linea.querySelector('select').selectedOptions[0];
+            const cantidad = Number(linea.querySelector('input').value) || 0;
+            total += (Number(opcion?.dataset.precio) || 0) * cantidad;
+        });
+        document.getElementById('totalPedido').textContent = pesos.format(total);
+    }
+    document.getElementById('lineasDetalle').addEventListener('input', actualizarTotal);
+    document.getElementById('lineasDetalle').addEventListener('change', actualizarTotal);
+
+    agregarLinea();
+</script>
+</body>
+</html>

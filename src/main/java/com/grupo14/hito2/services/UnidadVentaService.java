@@ -50,6 +50,11 @@ public class UnidadVentaService {
         return unidadVentaRepository.findByCodigo(codigo);
     }
 
+    // Si trabajó en varios festivales, la unidad del más reciente donde sigue activo
+    public Optional<UnidadVenta> obtenerPorStaff(long personalId) {
+        return unidadVentaRepository.findActivasByStaffId(personalId).stream().findFirst();
+    }
+
     // Todas las unidades donde trabajó, del festival más reciente al más viejo
     public List<UnidadVenta> obtenerHistorial(long personalId) {
         return unidadVentaRepository.findByStaffId(personalId);
@@ -61,6 +66,16 @@ public class UnidadVentaService {
         return unidadVentaRepository.findActivasByStaffId(personalId).stream()
                 .filter(u -> u.getFestival().estaEnCurso(hoy))
                 .findFirst();
+    }
+
+    public UnidadVenta buscarUnidadEnFestivalEnCurso(long personalId) {
+        return obtenerUnidadEnFestivalEnCurso(personalId)
+                .orElseThrow(() -> new NoEncontradoException("No tenés un festival en curso"));
+    }
+
+    public UnidadVenta buscarPorStaff(long personalId) {
+        return obtenerPorStaff(personalId)
+                .orElseThrow(() -> new NoEncontradoException("Empleado no tiene unidad de venta asignada"));
     }
 
     @Transactional
