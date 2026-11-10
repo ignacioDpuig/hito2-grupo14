@@ -3,6 +3,7 @@ package com.grupo14.hito2.mappers;
 import com.grupo14.hito2.dtos.CrearResponsableDTO;
 import com.grupo14.hito2.dtos.CrearUnidadVentaDTO;
 import com.grupo14.hito2.dtos.EditarUnidadVentaDTO;
+import com.grupo14.hito2.dtos.RankingUnidadDTO;
 import com.grupo14.hito2.dtos.ReporteMayoresCanonDTO;
 import com.grupo14.hito2.entities.DatosUnidad;
 import com.grupo14.hito2.entities.UnidadVenta;
@@ -48,6 +49,10 @@ public class UnidadVentaMapper {
 
     public ReporteMayoresCanonDTO toReporteCanon(UnidadVenta unidad, BigDecimal canon) {
         return new ReporteMayoresCanonDTO(unidad.getNombreComercial(), unidad.getCodigo(), unidad.getTipoDescripcion(), canon);
+    }
+
+    public RankingUnidadDTO toRanking(UnidadVenta unidad, BigDecimal recaudacion) {
+        return new RankingUnidadDTO(unidad.getNombreComercial(), unidad.getCodigo(), unidad.getTipoDescripcion(), recaudacion);
     }
 
     // Los datos del tipo pasan por actualizarDatosDelTipo, que los valida igual que en la modificación
