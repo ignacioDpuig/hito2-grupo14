@@ -2,21 +2,29 @@ package com.grupo14.hito2.services;
 
 import com.grupo14.hito2.dtos.CrearUnidadVentaDTO;
 import com.grupo14.hito2.dtos.EditarUnidadVentaDTO;
+import com.grupo14.hito2.dtos.RankingUnidadDTO;
+import com.grupo14.hito2.dtos.RecaudacionPorUnidad;
 import com.grupo14.hito2.dtos.ReporteMayoresCanonDTO;
+import com.grupo14.hito2.dtos.ReporteVentaDTO;
 import com.grupo14.hito2.dtos.ResumenPredioDTO;
+import com.grupo14.hito2.dtos.ResumenVentas;
 import com.grupo14.hito2.entities.*;
 import com.grupo14.hito2.exceptions.NoEncontradoException;
 import com.grupo14.hito2.mappers.UnidadVentaMapper;
+import com.grupo14.hito2.repositories.DetallePedidoRepository;
 import com.grupo14.hito2.repositories.UnidadVentaRepository;
 import com.grupo14.hito2.exceptions.ReglaDeNegocioException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -26,6 +34,7 @@ public class UnidadVentaService {
     public static final int TOP_MAXIMO = 20;
 
     private final UnidadVentaRepository unidadVentaRepository;
+    private final DetallePedidoRepository detallePedidoRepository;
     private final CuentaService cuentaService;
     private final FestivalService festivalService;
     private final UnidadVentaMapper unidadVentaMapper;
@@ -114,6 +123,28 @@ public class UnidadVentaService {
         unidadVentaRepository.save(unidad);
     }
 
+    @Transactional(readOnly = true)
+    // Solo unidades habilitadas: las pendientes de activación todavía no pueden vender
+    public List<RankingUnidadDTO> obtenerRankingPorFestival(long festivalId) {
+        Map<Long, BigDecimal> recaudaciones = detallePedidoRepository.sumarRecaudacionPorUnidad(festivalId).stream()
+                .collect(Collectors.toMap(RecaudacionPorUnidad::unidadId, RecaudacionPorUnidad::total));
+
+        return unidadVentaRepository.findByFestivalId(festivalId).stream()
+                .filter(UnidadVenta::isActiva)
+                .map(u -> unidadVentaMapper.toRanking(u, recaudaciones.getOrDefault(u.getId(), BigDecimal.ZERO)))
+                .sorted(Comparator.comparing(RankingUnidadDTO::getRecaudacion).reversed())
+                .toList();
+    }
+
+    // Reporte de Recaudación del enunciado: el total de un festival, sumando todas sus unidades
+    @Transactional(readOnly = true)
+    public ReporteVentaDTO obtenerRecaudacionDelFestival(long festivalId) {
+        Festival festival = festivalService.buscarPorId(festivalId);
+        ResumenVentas ventas = detallePedidoRepository.resumirVentasDelFestival(festivalId);
+        return new ReporteVentaDTO(festival.getNombre(), null, ventas.recaudacion(), ventas.costos(),
+                ventas.cantidadPedidos().intValue());
+    }
+
     // Solo unidades habilitadas, igual que el ranking; cada una con los costos de su tipo
     @Transactional(readOnly = true)
     public List<ReporteMayoresCanonDTO> obtenerMayoresCanon(long festivalId, int top) {
@@ -128,6 +159,7 @@ public class UnidadVentaService {
                 .limit(top)
                 .toList();
     }
+
 
     // Los formatos los validan @CodigoUnidad y @Patente, y los datos del tipo cada subclase; acá lo que necesita la base
     private void validarAltaDeUnidad(CrearUnidadVentaDTO dto) {

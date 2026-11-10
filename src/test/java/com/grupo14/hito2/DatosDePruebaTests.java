@@ -125,6 +125,7 @@ class DatosDePruebaTests {
                     assertThat(reporteUnidadService.generarReportes(u).getRentabilidad().getRentabilidadNeta()).isPositive();
                 });
         assertThat(unidadVentaService.obtenerMayoresCanon(FESTIVAL_DE_OTONIO, 3)).hasSize(3);
+        assertThat(unidadVentaService.obtenerRankingPorFestival(FESTIVAL_DE_OTONIO)).hasSize(5);
         assertThat(usuarioDetailsService.loadUserByUsername("pablo@email.com").isEnabled()).isTrue();
         assertThat(cuentaService.buscarPorEmail("pablo@email.com").isEstaActivo()).isTrue();
     }

@@ -45,6 +45,8 @@
                 <a th:href="@{/admin/festivales}" th:classappend="${ruta.startsWith('/admin/festivales') or ruta.startsWith('/admin/unidades/')} ? 'activo'">
                     <svg class="icono"><use href="#i-tent"/></svg> Festivales</a>
                 <span class="menu-titulo">Reportes</span>
+                <a th:href="@{/admin/ranking}" th:classappend="${ruta.startsWith('/admin/ranking')} ? 'activo'">
+                    <svg class="icono"><use href="#i-trophy"/></svg> Ranking</a>
                 <a th:href="@{/admin/canon-reporte}" th:classappend="${ruta.startsWith('/admin/canon')} ? 'activo'">
                     <svg class="icono"><use href="#i-coins"/></svg> Mayor canon</a>
             </th:block>

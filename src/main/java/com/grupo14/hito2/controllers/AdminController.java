@@ -31,6 +31,17 @@ public class AdminController {
         return "admin/unidades";
     }
 
+    @GetMapping("/ranking")
+    public String verRanking(@RequestParam(required = false) Long festivalId, Model model) {
+        model.addAttribute("festivales", festivalService.obtenerTodosFestivales());
+        if (festivalId != null) {
+            model.addAttribute("ranking", unidadVentaService.obtenerRankingPorFestival(festivalId));
+            model.addAttribute("recaudacion", unidadVentaService.obtenerRecaudacionDelFestival(festivalId));
+            model.addAttribute("festivalSeleccionado", festivalId);
+        }
+        return "admin/ranking";
+    }
+
     @GetMapping("/canon-reporte")
     public String verCanonReporte(
             @RequestParam(required = false) Long festivalId,
