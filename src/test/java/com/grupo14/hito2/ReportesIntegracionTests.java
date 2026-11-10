@@ -11,6 +11,8 @@ import com.grupo14.hito2.dtos.EditarUnidadVentaDTO;
 import com.grupo14.hito2.dtos.EmpleadoDeUnidad;
 import com.grupo14.hito2.dtos.FiltroEmpleadosDTO;
 import com.grupo14.hito2.dtos.LiquidacionDTO;
+import com.grupo14.hito2.dtos.RankingUnidadDTO;
+import com.grupo14.hito2.dtos.ReporteVentaDTO;
 import com.grupo14.hito2.dtos.RentabilidadEntreFechasDTO;
 import com.grupo14.hito2.dtos.ReportesUnidadDTO;
 import com.grupo14.hito2.dtos.ReporteMayoresCanonDTO;
@@ -63,6 +65,19 @@ class ReportesIntegracionTests {
     private PedidoService pedidoService;
     @Autowired
     private UsuarioDetailsService usuarioDetailsService;
+
+    @Test
+    void rankingOrdenadoPorRecaudacion() {
+        List<RankingUnidadDTO> ranking = unidadVentaService.obtenerRankingPorFestival(1);
+
+        assertThat(ranking).hasSize(5);
+        assertThat(ranking).extracting(RankingUnidadDTO::getCodigo)
+                .containsSubsequence("FTSDELSUR1", "PDPARRLL01");
+        assertThat(ranking.get(0).getRecaudacion()).isEqualByComparingTo("1500000");
+        assertThat(ranking.get(1).getRecaudacion()).isEqualByComparingTo("1410000");
+        assertThat(ranking).extracting(RankingUnidadDTO::getTipoUnidad)
+                .contains("Food truck", "Puesto desarmable");
+    }
 
     @Test
     void mayoresCanon() {
@@ -592,6 +607,7 @@ class ReportesIntegracionTests {
                 .isInstanceOf(ReglaDeNegocioException.class);
     }
 
+
     @Test
     void responsableVeLaLiquidacionDeSusEmpleados() {
         List<LiquidacionDTO> liquidaciones = liquidacionService.obtenerLiquidacionesDeLaUnidad(unidadDe("juan@email.com"));
@@ -611,6 +627,27 @@ class ReportesIntegracionTests {
         assertThatThrownBy(() -> liquidacionService.calcularLiquidacion("carlos@email.com", festivalPrimaveraId))
                 .isInstanceOf(NoEncontradoException.class)
                 .hasMessageContaining("No trabajaste");
+    }
+
+    @Test
+    void recaudacionTotalDelFestival() {
+        ReporteVentaDTO reporte = unidadVentaService.obtenerRecaudacionDelFestival(1);
+
+        assertThat(reporte.getNombreUnidad()).isNull();
+        assertThat(reporte.getTotalVendido()).isEqualByComparingTo("5910000");   // Dos unidades originales + tres con 1.000.000 cada una
+        assertThat(reporte.getTotalCostos()).isEqualByComparingTo("1622000");   // Costos históricos de las cinco unidades
+        assertThat(reporte.getCantidadPedidos()).isEqualTo(7);
+    }
+
+    @Test
+    void elRankingNoIncluyeUnidadesPendientesDeActivacion() {
+        cuentaService.buscarPorEmail("juan@email.com").setEstaActivo(false);
+
+        assertThat(unidadVentaService.obtenerRankingPorFestival(1))
+                .extracting(RankingUnidadDTO::getCodigo)
+                .doesNotContain("FTSDELSUR1")
+                .contains("PDPARRLL01", "FTDELSUR02", "PDGRILL002", "FTDELTA001")
+                .hasSize(4);
     }
 
     @Test
