@@ -168,6 +168,52 @@ public class ResponsableController {
         return "responsable/crear-plato";
     }
 
+    @GetMapping("/platos/{id}/editar")
+    public String formularioEditarPlato(@PathVariable Long id, @UnidadDelResponsable UnidadVenta unidad, Model model) {
+        model.addAttribute("platoId", id);
+        model.addAttribute("crearPlatoDTO", platoService.obtenerPlatoParaEditar(id, unidad));
+        return "responsable/editar-plato";
+    }
+
+    @PostMapping("/platos/{id}/editar")
+    public String editarPlato(@PathVariable Long id, @Valid @ModelAttribute("crearPlatoDTO") CrearPlatoDTO dto,
+                              BindingResult result, @UnidadDelResponsable UnidadVenta unidad, Model model,
+                              RedirectAttributes redirectAttributes) {
+        if (!result.hasErrors()) {
+            try {
+                platoService.actualizarPlato(id, unidad, dto);
+                redirectAttributes.addFlashAttribute("mensaje", "Plato modificado. Los pedidos anteriores conservan su precio");
+                return "redirect:/responsable/platos";
+            } catch (ReglaDeNegocioException e) {
+                model.addAttribute("error", "No se pudo modificar el plato: " + e.getMessage());
+            }
+        }
+        model.addAttribute("platoId", id);
+        return "responsable/editar-plato";
+    }
+
+    @PostMapping("/platos/{id}/eliminar")
+    public String eliminarPlato(@PathVariable Long id, @UnidadDelResponsable UnidadVenta unidad, RedirectAttributes redirectAttributes) {
+        try {
+            platoService.darDeBajaPlato(id, unidad);
+            redirectAttributes.addFlashAttribute("mensaje", "Plato dado de baja correctamente");
+        } catch (ReglaDeNegocioException e) {
+            redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());
+        }
+        return "redirect:/responsable/platos";
+    }
+
+    @PostMapping("/platos/{id}/reactivar")
+    public String reactivarPlato(@PathVariable Long id, @UnidadDelResponsable UnidadVenta unidad, RedirectAttributes redirectAttributes) {
+        try {
+            platoService.reactivarPlato(id, unidad);
+            redirectAttributes.addFlashAttribute("mensaje", "Plato reactivado correctamente");
+        } catch (ReglaDeNegocioException e) {
+            redirectAttributes.addFlashAttribute("error", "Error: " + e.getMessage());
+        }
+        return "redirect:/responsable/platos";
+    }
+
     // ─── Sueldos ──────────────────────────────────────────────────────────────
 
     @GetMapping("/sueldos")

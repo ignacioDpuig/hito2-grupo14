@@ -87,23 +87,51 @@ class ReportesIntegracionTests {
     }
 
     @Test
+    void noSePuedeEditarUnPlatoDeOtraUnidad() {
+        UnidadVenta otraUnidad = unidadDe("responsable@responsable");
+        long margheritaId = platoService.obtenerTodosLosPlatosPorUnidad(
+                        unidadDe("juan@email.com").getId()).stream()
+                .filter(p -> p.getNombre().equals("Pizza Margherita")).findFirst().orElseThrow().getId();
+
+        assertThatThrownBy(() -> platoService.actualizarPlato(margheritaId, otraUnidad,
+                new CrearPlatoDTO("Robada", new BigDecimal("1"), new BigDecimal("1"))))
+                .isInstanceOf(ReglaDeNegocioException.class);
+    }
+
+    @Test
     void elNombreDeUnPlatoNoSeRepiteEnLaUnidad() {
         UnidadVenta unidad = unidadDe("juan@email.com");
         UnidadVenta otraUnidad = unidadDe("responsable@responsable");
+        long margheritaId = platoService.obtenerTodosLosPlatosPorUnidad(unidad.getId()).stream()
+                .filter(p -> p.getNombre().equals("Pizza Margherita")).findFirst().orElseThrow().getId();
 
         assertThatThrownBy(() -> platoService.crearPlato(new CrearPlatoDTO(" pizza margherita ", new BigDecimal("1000"), new BigDecimal("5000")), unidad))
                 .hasMessageContaining("Ya tenés un plato llamado Pizza Margherita");
+        assertThatThrownBy(() -> platoService.actualizarPlato(margheritaId, unidad,
+                new CrearPlatoDTO("Pizza Pepperoni", new BigDecimal("1000"), new BigDecimal("5000"))))
+                .hasMessageContaining("Pizza Pepperoni");
 
-        // Otra unidad puede usar el nombre
+        platoService.darDeBajaPlato(margheritaId, unidad);
+        assertThatThrownBy(() -> platoService.crearPlato(new CrearPlatoDTO("Pizza Margherita", new BigDecimal("1000"), new BigDecimal("5000")), unidad))
+                .hasMessageContaining("dado de baja: podés reactivarlo");
+
+        // Editarlo con su mismo nombre no cuenta como repetido, y otra unidad puede usar el nombre
+        platoService.actualizarPlato(margheritaId, unidad, new CrearPlatoDTO("Pizza Margherita", new BigDecimal("3000"), new BigDecimal("11000")));
         platoService.crearPlato(new CrearPlatoDTO("Pizza Margherita", new BigDecimal("1000"), new BigDecimal("5000")), otraUnidad);
     }
 
     @Test
     void elPrecioDeVentaNoPuedeSerMenorAlCostoAlCrearNiEditar() {
         UnidadVenta unidad = unidadDe("juan@email.com");
+        long margheritaId = platoService.obtenerTodosLosPlatosPorUnidad(unidad.getId()).stream()
+                .filter(p -> p.getNombre().equals("Pizza Margherita")).findFirst().orElseThrow().getId();
 
         assertThatThrownBy(() -> platoService.crearPlato(
                 new CrearPlatoDTO("Pizza Nueva", new BigDecimal("3000"), new BigDecimal("2999.99")), unidad))
+                .isInstanceOf(ReglaDeNegocioException.class)
+                .hasMessageContaining("no puede ser menor");
+        assertThatThrownBy(() -> platoService.actualizarPlato(margheritaId, unidad,
+                new CrearPlatoDTO("Pizza Margherita", new BigDecimal("3000"), new BigDecimal("2999.99"))))
                 .isInstanceOf(ReglaDeNegocioException.class)
                 .hasMessageContaining("no puede ser menor");
 

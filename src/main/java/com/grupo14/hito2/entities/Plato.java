@@ -43,6 +43,15 @@ public class Plato {
         return plato;
     }
 
+    // Baja lógica: deja de ofrecerse en pedidos nuevos, pero sigue en los reportes de lo ya vendido
+    public void darDeBaja() {
+        eliminado = true;
+    }
+
+    public void reactivar() {
+        eliminado = false;
+    }
+
     // Los pedidos ya hechos guardan su propio precio, así que cambiarlo acá solo afecta a las ventas nuevas
     public void actualizar(String nombre, BigDecimal costoProduccion, BigDecimal precioVenta) {
         this.nombre = nombre;
