@@ -26,6 +26,7 @@
                 <th class="monto">Superficie</th>
                 <th>Responsable</th>
                 <th class="monto">Personal</th>
+                <th class="monto">Platos</th>
                 <th>Estado</th>
             </tr>
             </thead>
@@ -37,6 +38,7 @@
                 <td class="monto" th:text="${#numbers.formatDecimal(unidad.superficie, 1, 'POINT', 1, 'COMMA')} + ' m²'">25,5 m²</td>
                 <td th:text="${unidad.responsable.nombre + ' ' + unidad.responsable.apellido}">Responsable</td>
                 <td class="monto" th:text="${unidad.cantidadStaffActivo}">0</td>
+                <td class="monto" th:text="${unidad.platos.size()}">0</td>
                 <td>
                     <span th:if="${unidad.activa}" class="badge badge-ok">Activa</span>
                     <span th:unless="${unidad.activa}" class="badge badge-baja" title="El responsable todavía no activó su cuenta">Pendiente</span>

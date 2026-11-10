@@ -1,6 +1,7 @@
 package com.grupo14.hito2;
 
 import com.grupo14.hito2.dtos.CrearEmpleadoDTO;
+import com.grupo14.hito2.dtos.CrearPlatoDTO;
 import com.grupo14.hito2.dtos.CrearUnidadVentaDTO;
 import com.grupo14.hito2.dtos.EditarEmpleadoDTO;
 import com.grupo14.hito2.dtos.EditarUnidadVentaDTO;
@@ -10,6 +11,7 @@ import com.grupo14.hito2.dtos.LiquidacionDTO;
 import com.grupo14.hito2.dtos.ReporteMayoresCanonDTO;
 import com.grupo14.hito2.entities.Cocinero;
 import com.grupo14.hito2.entities.Empleado;
+import com.grupo14.hito2.entities.Plato;
 import com.grupo14.hito2.entities.Personal;
 import com.grupo14.hito2.entities.UnidadVenta;
 import com.grupo14.hito2.enums.CategoriaCocinero;
@@ -17,6 +19,7 @@ import com.grupo14.hito2.exceptions.NoEncontradoException;
 import com.grupo14.hito2.services.LiquidacionService;
 import com.grupo14.hito2.services.CuentaService;
 import com.grupo14.hito2.services.EmpleadoService;
+import com.grupo14.hito2.services.PlatoService;
 import com.grupo14.hito2.services.UnidadVentaService;
 import com.grupo14.hito2.services.UsuarioDetailsService;
 import com.grupo14.hito2.exceptions.ReglaDeNegocioException;
@@ -45,6 +48,8 @@ class ReportesIntegracionTests {
     private CuentaService cuentaService;
     @Autowired
     private EmpleadoService empleadoService;
+    @Autowired
+    private PlatoService platoService;
     @Autowired
     private UsuarioDetailsService usuarioDetailsService;
 
@@ -79,6 +84,32 @@ class ReportesIntegracionTests {
         List<EmpleadoDeUnidad> empleados = empleadoService.obtenerEmpleados(unidadDe("juan@email.com"), new FiltroEmpleadosDTO());
 
         assertThat(empleados).extracting(e -> e.empleado().getEmail()).containsExactly("carlos@email.com");
+    }
+
+    @Test
+    void elNombreDeUnPlatoNoSeRepiteEnLaUnidad() {
+        UnidadVenta unidad = unidadDe("juan@email.com");
+        UnidadVenta otraUnidad = unidadDe("responsable@responsable");
+
+        assertThatThrownBy(() -> platoService.crearPlato(new CrearPlatoDTO(" pizza margherita ", new BigDecimal("1000"), new BigDecimal("5000")), unidad))
+                .hasMessageContaining("Ya tenés un plato llamado Pizza Margherita");
+
+        // Otra unidad puede usar el nombre
+        platoService.crearPlato(new CrearPlatoDTO("Pizza Margherita", new BigDecimal("1000"), new BigDecimal("5000")), otraUnidad);
+    }
+
+    @Test
+    void elPrecioDeVentaNoPuedeSerMenorAlCostoAlCrearNiEditar() {
+        UnidadVenta unidad = unidadDe("juan@email.com");
+
+        assertThatThrownBy(() -> platoService.crearPlato(
+                new CrearPlatoDTO("Pizza Nueva", new BigDecimal("3000"), new BigDecimal("2999.99")), unidad))
+                .isInstanceOf(ReglaDeNegocioException.class)
+                .hasMessageContaining("no puede ser menor");
+
+        Plato platoAlCosto = platoService.crearPlato(
+                new CrearPlatoDTO("Pizza Al Costo", new BigDecimal("3000"), new BigDecimal("3000")), unidad);
+        assertThat(platoAlCosto.getPrecioVenta()).isEqualByComparingTo("3000");
     }
 
     @Test

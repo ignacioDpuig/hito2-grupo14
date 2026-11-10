@@ -25,6 +25,10 @@
             <span class="stat-etiqueta"><svg class="icono"><use href="#i-users"/></svg> Empleados activos</span>
             <span class="stat-valor" th:text="${empleadosActivos}">0</span>
         </div>
+        <div class="stat">
+            <span class="stat-etiqueta"><svg class="icono"><use href="#i-utensils"/></svg> Platos en el menú</span>
+            <span class="stat-valor" th:text="${platosActivos}">0</span>
+        </div>
     </div>
 
     <div class="card-grid">
@@ -32,6 +36,11 @@
             <h2><svg class="icono"><use href="#i-users"/></svg> Empleados</h2>
             <p>Alta, modificación y baja definitiva del personal de tu unidad</p>
             <a th:href="@{/responsable/empleados}" class="btn btn-suave">Ver empleados</a>
+        </div>
+        <div class="card card-menu">
+            <h2><svg class="icono"><use href="#i-utensils"/></svg> Platos</h2>
+            <p>El menú de tu unidad: precios, costos y platos dados de baja</p>
+            <a th:href="@{/responsable/platos}" class="btn btn-suave">Ver platos</a>
         </div>
         <div class="card card-menu">
             <h2><svg class="icono"><use href="#i-wallet"/></svg> Sueldos</h2>

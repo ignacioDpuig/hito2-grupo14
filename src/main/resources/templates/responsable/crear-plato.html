@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:replace="~{fragments/layout :: head('Nuevo plato')}"></head>
+<body>
+<th:block th:replace="~{fragments/layout :: menu('responsable')}"></th:block>
+
+<div class="container angosto">
+    <div class="card">
+        <h2><svg class="icono"><use href="#i-utensils"/></svg> Nuevo plato</h2>
+        <div th:replace="~{fragments/layout :: mensajes}"></div>
+        <form th:action="@{/responsable/platos/crear}" th:object="${crearPlatoDTO}" method="post">
+            <div th:replace="~{fragments/layout :: erroresFormulario}"></div>
+            <div class="form-group">
+                <label for="nombre">Nombre del plato</label>
+                <input type="text" id="nombre" th:field="*{nombre}" placeholder="Ej: Pizza Margherita" required>
+            </div>
+            <div class="form-group">
+                <label for="costoProduccion">Costo de producción ($)</label>
+                <input type="number" id="costoProduccion" th:field="*{costoProduccion}" step="0.01" min="0" required>
+            </div>
+            <div class="form-group">
+                <label for="precioVenta">Precio de venta ($)</label>
+                <input type="number" id="precioVenta" th:field="*{precioVenta}" step="0.01" min="0" required>
+            </div>
+            <div class="form-buttons">
+                <button type="submit" class="btn btn-primario">Crear plato</button>
+                <a th:href="@{/responsable/platos}" class="btn btn-secondary">Cancelar</a>
+            </div>
+        </form>
+    </div>
+</div>
+</body>
+</html>

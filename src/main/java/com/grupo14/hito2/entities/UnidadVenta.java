@@ -32,6 +32,9 @@ public abstract class UnidadVenta {
     @JoinColumn(name = "responsable_id", unique = true)
     private Personal responsable;
 
+    @OneToMany(mappedBy = "unidadVenta", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Set<Plato> platos = new HashSet<>();
+
     @OneToMany(mappedBy = "unidadVenta", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<AsignacionStaff> staff = new HashSet<>();
     @ManyToOne(fetch = FetchType.LAZY)
