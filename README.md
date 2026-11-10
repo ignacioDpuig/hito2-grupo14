@@ -51,6 +51,23 @@ Cada caso de uso se agregó a `main` con su propio Pull Request, que detalla lo 
 
 ## 1. Cómo levantarlo
 
+### Inicio rápido
+
+Requisitos: JDK 21 y MySQL corriendo en `localhost:3306` con usuario `root` y contraseña `root`.
+
+1. Crear la base (una sola vez):
+   `mysql -u root -p -e "CREATE DATABASE IF NOT EXISTS hito2_db;"`
+2. Levantar la app:
+   - Linux / Mac: `./mvnw spring-boot:run`
+   - Windows: `.\mvnw.cmd spring-boot:run`
+3. Abrir http://localhost:8080 y entrar con `admin@admin` / `admin`.
+
+No hace falta crear el archivo `.env`, salvo en estos dos casos:
+- **Tu MySQL tiene otra contraseña:** crear un `.env` en la raíz con `DB_PASSWORD=tu_contraseña`.
+- **Querés que se envíen los mails de credenciales:** completar `MAIL_USERNAME` y `MAIL_PASSWORD` (ver la tabla de abajo). Sin eso, el mail falla pero el alta se hace igual.
+
+### Paso a paso
+
 **Requisitos:** JDK 21, MySQL corriendo en `localhost:3306`. Maven viene incluido (`mvnw`).
 
 ```bash
