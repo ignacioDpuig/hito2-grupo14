@@ -136,7 +136,7 @@ Hay tres festivales: el **Festival Gastronómico 2024** (con pedidos históricos
 
 Además, `data.sql` deja listos estos casos (los fija `DatosDePruebaTests`):
 - **Costos por tipo:** en Primavera 2026 los Food Trucks pagan $700 el m² y tienen sueldo base de $110.000; el resto de las unidades usa la configuración general.
-- **Empleado en dos festivales:** Martín tiene historial y un recibo por festival ($300.000 en 2024 y $315.000 en Primavera).
+- **Empleado en dos festivales:** Martín tiene historial y un recibo por festival: $226.666,60 en 2024 (38 días) y, en Primavera, lo que lleva trabajado ($38.499,93 el día que arranca la app, con 11 días).
 - **Bajas:** Rocío ya no aparece en la gestión ni puede entrar; su historial se conserva. El plato Provoleta está dado de baja y se puede reactivar.
 - **Unidades de venta:** cada festival tiene cinco unidades. Las ventas de ejemplo dejan rentabilidad neta positiva en cada una; Otoño ya está cerrado y sus unidades tienen reportes históricos.
 - Las cuentas responsables de las unidades de ejemplo usan `pass123`, salvo las cuentas documentadas con otra contraseña.
@@ -386,7 +386,7 @@ flowchart TD
 ### Cómo se calcula el sueldo
 
 ```
-sueldo = (sueldo base + plus) × porcentaje por duración del festival
+sueldo = (sueldo base + plus) × porcentaje según los días trabajados
 ```
 
 | Parte | De dónde sale | Clase |
@@ -394,15 +394,16 @@ sueldo = (sueldo base + plus) × porcentaje por duración del festival
 | Sueldo base | Lo fija el festival para el tipo de unidad | `ConfiguracionCostos` |
 | Plus del cocinero | El de su categoría (cocinero, ayudante, lavaplatos) | `Cocinero.calcularPlus` |
 | Plus del cajero | Monto por año × años de antigüedad **al terminar el festival** | `Cajero.calcularPlus` |
-| Porcentaje | Hasta 15 días 50%; de 16 a 30 días 100%; más de 30, 50% por cada bloque de 15 días contando `días / 15 + 1` bloques | `Liquidacion.porcentaje` |
+| Días trabajados | Desde el inicio del festival (o el ingreso, si fue después) hasta el fin (o hoy, si el festival sigue en curso), ambos incluidos | `Festival.getDiasTrabajadosDesde` |
+| Porcentaje | Proporcional a un mes de 30 días: hasta 15 días, `días × 50% / 30`; de 16 a 30, `días / 30`; más de 30, los primeros 30 al 100% y el resto al 50%: `(30 + (días − 30) × 50%) / 30` | `Liquidacion.porcentaje` |
 
 ```mermaid
 %%{init: {"flowchart": {"padding": 28, "nodeSpacing": 70, "rankSpacing": 70, "wrappingWidth": 280}}}%%
 flowchart LR
-    D[Días del festival<br/>fin − inicio + 1] --> Q{¿Cuántos días?}
-    Q -- "hasta 15" --> P1[50%]
-    Q -- "16 a 30" --> P2[100%]
-    Q -- "más de 30" --> P3["(días / 15 + 1) × 50%<br/>38 días → 3 bloques → 150%"]
+    D[Días trabajados<br/>desde el inicio o el ingreso<br/>hasta el fin o hoy] --> Q{¿Cuántos días?}
+    Q -- "hasta 15" --> P1["días × 50% / 30<br/>15 días → 25%"]
+    Q -- "16 a 30" --> P2["días / 30<br/>30 días → 100%"]
+    Q -- "más de 30" --> P3["(30 + (días − 30) × 50%) / 30<br/>38 días → 113,33%"]
     P1 & P2 & P3 --> T["sueldo = (sueldo base + plus) × porcentaje"]
 ```
 
@@ -425,7 +426,9 @@ sequenceDiagram
 
 El recorrido es corto: `LiquidacionService` le pide al empleado `empleado.liquidar(unidad)`, que devuelve una `Liquidacion` con el sueldo base, el plus y los días; `Liquidacion.total()` aplica la fórmula y `LiquidacionMapper` copia esos números al recibo.
 
-Ejemplo: lavaplatos en un festival de 38 días → 38 / 15 + 1 = 3 bloques = 150% → (100.000 + 50.000) × 150% = **$225.000**.
+Ejemplo: lavaplatos que trabajó los 38 días del Festival 2024 → (30 + 8 × 50%) / 30 = 113,33% → (100.000 + 50.000) × 1,133333 = **$169.999,95**.
+
+Como los días se cuentan hasta hoy, el sueldo de un festival en curso crece día a día; el de un festival terminado queda fijo.
 
 ### Sueldos del personal (responsable)
 
@@ -450,9 +453,9 @@ La baja de un empleado marca como inactivas todas sus asignaciones (`AsignacionS
 - **Plato estrella** (`PlatoDTO`): el plato con más unidades vendidas (un pedido de 50 pizzas suma 50). Si empatan, el primero por nombre, para que el resultado no sea al azar.
 - **Rentabilidad neta** (`RentabilidadDTO`): ventas − costo de los platos − sueldos del staff − canon.
 
-Con los datos de prueba, el Food Truck de Juan da: $1.500.000 vendido − $446.000 de platos − $375.000 de sueldos − $14.750 de canon = **$664.250**.
+Con los datos de prueba, el Food Truck de Juan da: $1.500.000 vendido − $446.000 de platos − $283.333,25 de sueldos − $14.750 de canon = **$755.916,75**.
 
-**Rentabilidad entre fechas** (`/responsable/reportes/fechas`, `RentabilidadEntreFechasDTO`): las fechas tienen que estar dentro del festival. Ventas y costo de platos son los del período; sueldos y canon se prorratean por los días que cubre (`Festival.prorratear`, redondeado al centavo). Ejemplo: del 20/12 al 21/12 son 2 de 38 días → $860.000 − $258.000 − 2/38 × $375.000 − 2/38 × $14.750 = **$581.486,84**.
+**Rentabilidad entre fechas** (`/responsable/reportes/fechas`, `RentabilidadEntreFechasDTO`): las fechas tienen que estar dentro del festival. Ventas y costo de platos son los del período; sueldos y canon se prorratean por los días que cubre (`Festival.prorratear`, redondeado al centavo). Ejemplo: del 20/12 al 21/12 son 2 de 38 días → $860.000 − $258.000 − 2/38 × $283.333,25 − 2/38 × $14.750 = **$586.311,40**.
 
 ### Empleado: festival en curso, historial y cierre de caja
 
@@ -491,13 +494,13 @@ Con los datos de prueba pueden cargar pedidos los cajeros del Festival Primavera
 
 `/empleado/recibos` muestra un recibo por festival en el que trabajó; `/empleado/recibos/descargar/{festivalId}` lo descarga en PDF.
 
-**El recibo** (en pantalla y en PDF, `PDFService`) se identifica con el **id y el código de la unidad de venta** que paga el sueldo, e incluye los datos del **empleador** (unidad, tipo y su **responsable**: nombre, DNI y email), del **empleado** (DNI, cargo, ingreso, email), el detalle de la liquidación (sueldo base, plus, porcentaje según la duración), el total neto y lugar para las firmas. El empleado sale de la sesión, así que nadie puede ver el recibo de otro, y un festival donde no trabajó da 404. Responsables y admin no tienen recibos.
+**El recibo** (en pantalla y en PDF, `PDFService`) se identifica con el **id y el código de la unidad de venta** que paga el sueldo, e incluye los datos del **empleador** (unidad, tipo y su **responsable**: nombre, DNI y email), del **empleado** (DNI, cargo, ingreso, email), el detalle de la liquidación (sueldo base, plus, desglose de los días y porcentaje aplicado), el total neto y lugar para las firmas. El empleado sale de la sesión, así que nadie puede ver el recibo de otro, y un festival donde no trabajó da 404. Responsables y admin no tienen recibos.
 
 Cálculo (`Empleado.liquidar` + `Liquidacion`, ver "Cómo se calcula el sueldo"):
-- Días del festival = días entre inicio y fin **+ 1**.
-- La **antigüedad** del cajero es la que tenía **el día que terminó el festival** (`Personal.getAniosAntiguedad(fecha)`): el recibo de un festival no cambia con el paso del tiempo, y si ingresó después del festival no suma antigüedad en ese.
-- Hasta 15 días: 50% · de 16 a 30: 100% · más de 30: `(int(días/15) + 1) × 50%`.
-- Ejemplo: lavaplatos, festival de 38 días → 3 × 50% × ($100.000 + $50.000) = **$225.000**.
+- Días trabajados = desde el inicio del festival (o el ingreso, si fue después) hasta el fin (o hoy, si sigue en curso), **ambos incluidos**.
+- La **antigüedad** del cajero es la que tenía **el día que terminó el festival** (`Personal.getAniosAntiguedad(fecha)`): si ingresó después del festival no suma antigüedad en ese.
+- Hasta 15 días: `días × 50% / 30` · de 16 a 30: `días / 30` · más de 30: `(30 + (días − 30) × 50%) / 30`.
+- Ejemplo: lavaplatos, 38 días → 113,33% × ($100.000 + $50.000) = **$169.999,95**.
 
 ### Reportes (admin)
 

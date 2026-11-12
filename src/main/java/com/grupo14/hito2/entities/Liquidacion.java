@@ -7,17 +7,17 @@ import java.math.RoundingMode;
  * Value object (no persiste): el sueldo de un empleado por un festival, con la fórmula del enunciado.
  *
  * <pre>
- *   sueldo = (sueldo base + plus) × porcentaje por duración del festival
+ *   sueldo = (sueldo base + plus) × porcentaje según los días trabajados
  * </pre>
  *
  * <ul>
  *   <li><b>Sueldo base:</b> lo fija el festival para el tipo de unidad (ConfiguracionCostos).</li>
  *   <li><b>Plus:</b> depende del puesto. Cocinero: el de su categoría. Cajero: un monto por año de antigüedad.</li>
- *   <li><b>Porcentaje:</b> hasta 15 días 50%, de 16 a 30 días 100%, más de 30 días 50% por cada bloque
- *       de 15 días, contando (días / 15) + 1 bloques. Ej.: 38 días → 3 bloques → 150%.</li>
+ *   <li><b>Porcentaje:</b> proporcional a un mes de 30 días. Hasta 15 días: días × 50% / 30;
+ *       de 16 a 30: días / 30; más de 30: los primeros 30 al 100% y el resto al 50%.</li>
  * </ul>
  *
- * Ejemplo: lavaplatos en un festival de 38 días → (100.000 + 50.000) × 150% = 225.000.
+ * Ejemplo: lavaplatos que trabajó 38 días → (30 + 8 × 50%) / 30 = 113,33% → (100.000 + 50.000) × 113,33% = 169.999,95.
  */
 public record Liquidacion(BigDecimal sueldoBase, BigDecimal plus, String conceptoPlus, long diasFestival) {
 
