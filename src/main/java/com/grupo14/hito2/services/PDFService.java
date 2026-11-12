@@ -15,6 +15,7 @@ import java.awt.Color;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.text.DecimalFormatSymbols;
 import java.time.LocalDate;
@@ -134,11 +135,17 @@ public class PDFService {
         y -= 20;
 
         BigDecimal subtotal = r.getSueldoBase().add(r.getPlus());
+        BigDecimal montoDesglose = BigDecimal.ZERO;
+        if (subtotal.signum() != 0) {
+            montoDesglose = r.getSueldoBase()
+                    .multiply(r.getTotalNeto())
+                    .divide(subtotal, 2, RoundingMode.HALF_UP);
+        }
         String[][] filas = {
                 {"Sueldo base", "Fijado por el festival", moneda(r.getSueldoBase())},
                 {r.getConceptoPlus(), r.getCargo(), moneda(r.getPlus())},
-                {"Subtotal", "Sueldo base + plus", moneda(subtotal)},
-                {"Desglose de liquidación", r.getDesglose(), ""},
+                {"Desglose de liquidación", r.getDesglose(), moneda(montoDesglose)},
+                {"Porcentaje aplicado", r.getPorcentajeAplicado() + " sobre el subtotal", moneda(r.getTotalNeto())},
         };
         for (String[] fila : filas) {
             y -= 24;
