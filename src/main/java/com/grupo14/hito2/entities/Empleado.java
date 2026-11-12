@@ -45,7 +45,13 @@ public abstract class Empleado extends Personal {
         Festival festival = unidad.getFestival();
         ConfiguracionCostos costos = unidad.getConfiguracionCostos();
         LocalDate finDelFestival = festival.getFechaFin();
-        return new Liquidacion(costos.getSueldoBase(), calcularPlus(costos, finDelFestival),
-                getConceptoPlus(finDelFestival), festival.getDiasDuracion());
+        long diasTrabajados = festival.getDiasTrabajadosDesde(getFechaIngreso());
+
+        return new Liquidacion(
+                costos.getSueldoBase(),
+                calcularPlus(costos, finDelFestival),
+                getConceptoPlus(finDelFestival),
+                diasTrabajados
+        );
     }
 }

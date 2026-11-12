@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.LocalDate;
 
 @Getter @Setter @NoArgsConstructor @AllArgsConstructor
@@ -61,4 +62,15 @@ public class LiquidacionDTO {
     }
 
     private static final String DADO_DE_BAJA = "Dado de baja";
+    public BigDecimal getMontoDesglose() {
+        if (sueldoBase == null || totalNeto == null) return BigDecimal.ZERO;
+        BigDecimal subtotal = (sueldoBase == null ? BigDecimal.ZERO : sueldoBase)
+                .add(plus == null ? BigDecimal.ZERO : plus);
+        if (subtotal.signum() == 0) return BigDecimal.ZERO;
+        return sueldoBase.multiply(totalNeto).divide(subtotal, 6, RoundingMode.HALF_UP);
+    }
+
+    public BigDecimal getMontoPorcentajeAplicado() {
+        return totalNeto == null ? BigDecimal.ZERO : totalNeto;
+    }
 }

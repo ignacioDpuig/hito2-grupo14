@@ -89,4 +89,19 @@ public class Festival {
                 .or(() -> configuraciones.stream().filter(ConfiguracionCostos::esGeneral).min(primeraCargada))
                 .orElseThrow(() -> new NoEncontradoException("El festival " + nombre + " no tiene costos configurados"));
     }
+    public long getDiasTrabajadosDesde(LocalDate fechaIngreso) {
+        LocalDate hoy = LocalDate.now();
+
+        if (hoy.isBefore(fechaInicio)) return 0;
+
+        LocalDate inicioTrabajado = (fechaIngreso == null || fechaIngreso.isBefore(fechaInicio))
+                ? fechaInicio
+                : fechaIngreso;
+
+        LocalDate finTrabajado = hoy.isBefore(fechaFin) ? hoy : fechaFin;
+
+        if (inicioTrabajado.isAfter(finTrabajado)) return 0;
+
+        return ChronoUnit.DAYS.between(inicioTrabajado, finTrabajado) + 1;
+    }
 }
