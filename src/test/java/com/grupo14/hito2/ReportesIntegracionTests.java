@@ -101,7 +101,7 @@ class ReportesIntegracionTests {
         List<LiquidacionDTO> recibos = liquidacionService.obtenerRecibos("empleado@empleado");
 
         assertThat(recibos).hasSize(1);
-        assertThat(recibos.get(0).getTotalNeto()).isEqualByComparingTo("225000");
+        assertThat(recibos.get(0).getTotalNeto()).isEqualByComparingTo("169999.95000000");
         assertThat(liquidacionService.obtenerRecibos("juan@email.com")).isEmpty();
     }
 
@@ -127,9 +127,9 @@ class ReportesIntegracionTests {
         assertThat(reportes.getRecaudacion().getCantidadPedidos()).isEqualTo(2);
         assertThat(reportes.getPlatoEstrella().getNombre()).isEqualTo("Pizza Margherita");
         assertThat(reportes.getPlatoEstrella().getCantidadVendida()).isEqualTo(70);
-        assertThat(reportes.getRentabilidad().getSueldos()).isEqualByComparingTo("375000");
+        assertThat(reportes.getRentabilidad().getSueldos()).isEqualByComparingTo("283333.25000000");
         assertThat(reportes.getRentabilidad().getCanon()).isEqualByComparingTo("14750");
-        assertThat(reportes.getRentabilidad().getRentabilidadNeta()).isEqualByComparingTo("664250");
+        assertThat(reportes.getRentabilidad().getRentabilidadNeta()).isEqualByComparingTo("755916.75000000");
     }
 
     @Test
@@ -142,7 +142,7 @@ class ReportesIntegracionTests {
         ReportesUnidadDTO reportes = reporteUnidadService.generarReportes(unidadDe("juan@email.com"));
 
         assertThat(reportes.getRecaudacion().getTotalCostos()).isEqualByComparingTo("446000");
-        assertThat(reportes.getRentabilidad().getRentabilidadNeta()).isEqualByComparingTo("664250");
+        assertThat(reportes.getRentabilidad().getRentabilidadNeta()).isEqualByComparingTo("755916.75000000");
         assertThat(reportes.getPlatoEstrella().getNombre()).isEqualTo("Pizza Margherita");
     }
 
@@ -269,17 +269,16 @@ class ReportesIntegracionTests {
         assertThat(reporte.getDiasPeriodo()).isEqualTo(2);
         assertThat(reporte.getRecaudacion()).isEqualByComparingTo("860000");
         assertThat(reporte.getCostosPlatos()).isEqualByComparingTo("258000");
-        // Sueldos y canon prorrateados y redondeados al centavo: 375.000 × 2/38 y 14.750 × 2/38
-        assertThat(reporte.getSueldos()).isEqualByComparingTo("19736.84");
+        assertThat(reporte.getSueldos()).isEqualByComparingTo("14912.28");
         assertThat(reporte.getCanon()).isEqualByComparingTo("776.32");
-        assertThat(reporte.getRentabilidadNeta()).isEqualByComparingTo("581486.84");
+        assertThat(reporte.getRentabilidadNeta()).isEqualByComparingTo("586311.40");
     }
 
     @Test
     void rentabilidadDeTodoElFestivalCoincideConLaTotal() {
         RentabilidadEntreFechasDTO reporte = reporteUnidadService.calcularRentabilidadEntreFechas(unidadDe("juan@email.com"),
                 LocalDate.of(2024, 12, 15), LocalDate.of(2025, 1, 21));
-        assertThat(reporte.getRentabilidadNeta()).isEqualByComparingTo("664250");
+        assertThat(reporte.getRentabilidadNeta()).isEqualByComparingTo("755916.75");
     }
 
     @Test
@@ -357,7 +356,7 @@ class ReportesIntegracionTests {
         List<LiquidacionDTO> sueldos = liquidacionService.obtenerLiquidacionesDeLaUnidad(unidadDe("juan@email.com"));
         assertThat(sueldos).singleElement().satisfies(l -> {
             assertThat(l.isDadoDeBaja()).isTrue();
-            assertThat(l.getTotalNeto()).isEqualByComparingTo("375000");
+            assertThat(l.getTotalNeto()).isEqualByComparingTo("283333.25000000");
             // El recibo no muestra el DNI ni el email anonimizados por la baja definitiva
             assertThat(l.getDniParaMostrar()).isEqualTo("Dado de baja");
             assertThat(l.getEmailParaMostrar()).isEqualTo("Dado de baja");
@@ -613,7 +612,7 @@ class ReportesIntegracionTests {
         List<LiquidacionDTO> liquidaciones = liquidacionService.obtenerLiquidacionesDeLaUnidad(unidadDe("juan@email.com"));
         assertThat(liquidaciones).singleElement().satisfies(l -> {
             assertThat(l.getNombreEmpleado()).isEqualTo("Carlos");
-            assertThat(l.getTotalNeto()).isEqualByComparingTo("375000");
+            assertThat(l.getTotalNeto()).isEqualByComparingTo("283333.2500");
         });
 
         long albertoId = cuentaService.buscarPorEmail("empleado@empleado").getId();

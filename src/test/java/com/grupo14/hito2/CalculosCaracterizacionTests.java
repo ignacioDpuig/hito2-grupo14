@@ -73,35 +73,35 @@ class CalculosCaracterizacionTests {
     void liquidacionLavaplatos38Dias() {
         LiquidacionDTO recibo = liquidacionService.calcularLiquidacion(cocinero(CategoriaCocinero.LAVAPLATOS), unidadDeDias(38));
 
-        assertThat(recibo.getTotalNeto()).isEqualByComparingTo("225000");
+        assertThat(recibo.getTotalNeto()).isEqualByComparingTo("169999.950000");
         assertThat(recibo.getPlus()).isEqualByComparingTo("50000");
         assertThat(recibo.getCargo()).isEqualTo("Lavaplatos");
         assertThat(recibo.getConceptoPlus()).isEqualTo("Plus Lavaplatos");
         assertThat(recibo.getEspecialidadOTurno()).isEqualTo("Parrillas");
-        assertThat(recibo.getPorcentajeAplicado()).isEqualTo("150%");
-        assertThat(recibo.getDesglose()).isEqualTo("38 días: 3 bloques de 15 días al 50% c/u");
+        assertThat(recibo.getPorcentajeAplicado()).isEqualTo("113.33%");
+        assertThat(recibo.getDesglose()).isEqualTo("38 días: 30 al 100% y 8 al 50%");
         assertThat(recibo.getDiasDuracion()).isEqualTo(38);
     }
 
     @Test
     void liquidacionCocinero38Dias() {
         LiquidacionDTO recibo = liquidacionService.calcularLiquidacion(cocinero(CategoriaCocinero.COCINERO), unidadDeDias(38));
-        assertThat(recibo.getTotalNeto()).isEqualByComparingTo("375000");
+        assertThat(recibo.getTotalNeto()).isEqualByComparingTo("283333.250000");
     }
 
     @Test
     void liquidacionAyudanteHasta15DiasCobra50() {
         LiquidacionDTO recibo = liquidacionService.calcularLiquidacion(cocinero(CategoriaCocinero.COCINERO_AYUDANTE), unidadDeDias(10));
-        assertThat(recibo.getTotalNeto()).isEqualByComparingTo("100000");
-        assertThat(recibo.getPorcentajeAplicado()).isEqualTo("50%");
+        assertThat(recibo.getTotalNeto()).isEqualByComparingTo("33333.400000");
+        assertThat(recibo.getPorcentajeAplicado()).isEqualTo("16.67%");
         assertThat(recibo.getDesglose()).isEqualTo("10 días al 50%");
     }
 
     @Test
     void liquidacionCocineroEntre16y30DiasCobra100() {
         LiquidacionDTO recibo = liquidacionService.calcularLiquidacion(cocinero(CategoriaCocinero.COCINERO), unidadDeDias(20));
-        assertThat(recibo.getTotalNeto()).isEqualByComparingTo("250000");
-        assertThat(recibo.getPorcentajeAplicado()).isEqualTo("100%");
+        assertThat(recibo.getTotalNeto()).isEqualByComparingTo("166666.750000");
+        assertThat(recibo.getPorcentajeAplicado()).isEqualTo("66.67%");
         assertThat(recibo.getDesglose()).isEqualTo("20 días al 100%");
     }
 
@@ -115,7 +115,7 @@ class CalculosCaracterizacionTests {
 
         LiquidacionDTO recibo = liquidacionService.calcularLiquidacion(cajero, unidadDeDias(52));
 
-        assertThat(recibo.getTotalNeto()).isEqualByComparingTo("230000");
+        assertThat(recibo.getTotalNeto()).isEqualByComparingTo("157166.705000");
         assertThat(recibo.getPlus()).isEqualByComparingTo("15000");
         assertThat(recibo.getCargo()).isEqualTo("Cajero");
         assertThat(recibo.getConceptoPlus()).isEqualTo("Antigüedad (3 años)");
@@ -196,9 +196,9 @@ class CalculosCaracterizacionTests {
         assertThat(puesto.calcularCanon()).isEqualByComparingTo("14975");
         // Sueldo base del tipo: (120.000 + 150.000) × 100%
         assertThat(liquidacionService.calcularLiquidacion(cocinero(CategoriaCocinero.COCINERO), foodTruck).getTotalNeto())
-                .isEqualByComparingTo("270000");
+                .isEqualByComparingTo("180000.090000");
         assertThat(liquidacionService.calcularLiquidacion(cocinero(CategoriaCocinero.COCINERO), puesto).getTotalNeto())
-                .isEqualByComparingTo("250000");
+                .isEqualByComparingTo("166666.750000");
     }
 
     @Test

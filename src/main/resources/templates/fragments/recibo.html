@@ -48,9 +48,8 @@
                 <td class="monto"><span th:replace="~{fragments/layout :: monto(${r.sueldoBase})}"></span></td></tr>
             <tr><td th:text="${r.conceptoPlus}">Plus</td><td class="subtitulo" th:text="${r.cargo}">Cargo</td>
                 <td class="monto"><span th:replace="~{fragments/layout :: monto(${r.plus})}"></span></td></tr>
-            <tr><td>Duración del festival</td><td class="subtitulo" th:text="${r.desglose}">desglose</td>
-                <td class="monto" th:text="${r.porcentajeAplicado}">150%</td></tr>
-        </table>
+            <tr><td>Desglose de liquidación</td><td class="subtitulo" th:text="${r.desglose}">desglose</td>
+                <td class="monto">-</td>        </table>
 
         <div class="recibo-total">
             <span>Total neto a cobrar</span>
