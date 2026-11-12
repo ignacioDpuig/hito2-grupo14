@@ -47,6 +47,16 @@ Cada caso de uso se agregó a `main` con su propio Pull Request, que detalla lo 
 | 14 | Reportes del responsable | Joaquín Adra | `CUReportesResponsableJoaquinAdra` | [#16](https://github.com/ignacioDpuig/hito2-grupo14/pull/16) |
 | 15 | Ranking de unidades | Ignacio Puig | `CURankingUnidadesIgnacioPuig` | [#17](https://github.com/ignacioDpuig/hito2-grupo14/pull/17) |
 
+### Documentación por integrante
+
+Cada integrante documenta su área: cómo está construida, qué se valida y qué decisiones técnicas se tomaron.
+
+| Integrante | Área | Documento |
+|---|---|---|
+| Ignacio Puig | Arquitectura base, login y seguridad, registro de unidades, festivales, mayor canon y ranking | [docs/IgnacioPuig.md](docs/IgnacioPuig.md) |
+| Leandro Kaul | Alta, modificación y baja de empleados, historial, liquidación y recibo PDF | [docs/LeandroKaul.md](docs/LeandroKaul.md) |
+| Joaquín Adra | Platos, pedidos, cierre de caja y reportes del responsable | [docs/JoaquinAdra.md](docs/JoaquinAdra.md) |
+
 ---
 
 ## 1. Cómo levantarlo
