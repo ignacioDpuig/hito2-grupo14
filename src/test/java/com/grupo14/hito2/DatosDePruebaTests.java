@@ -55,12 +55,13 @@ class DatosDePruebaTests {
         List<LiquidacionDTO> recibos = liquidacionService.obtenerRecibos("martin@email.com");
 
         assertThat(unidadVentaService.obtenerHistorial(martinId)).hasSize(2);
-        // Primavera 2026 (41 días, 150%): sueldo base de los food trucks $110.000 + plus ayudante $100.000
-        // Festival 2024 (38 días, 150%): sueldo base general $100.000 + $100.000
+        // Primavera 2026 empezó hace 10 días: lleva 11 días trabajados → 11 × 50% / 30 = 18,33%
+        //   sobre el sueldo base de los food trucks $110.000 + plus ayudante $100.000
+        // Festival 2024 (38 días, ya terminado): 30 al 100% y 8 al 50% → 113,33% sobre $100.000 + $100.000
         assertThat(recibos).satisfiesExactly(
                 primavera -> {
                     assertThat(primavera.getNombreFestival()).isEqualTo("Festival Primavera 2026");
-                    assertThat(primavera.getTotalNeto()).isEqualByComparingTo("248499.93000000");
+                    assertThat(primavera.getTotalNeto()).isEqualByComparingTo("38499.93000000");
                 },
                 anterior -> {
                     assertThat(anterior.getNombreFestival()).isEqualTo("Festival Gastronómico 2024");

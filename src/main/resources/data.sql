@@ -30,9 +30,9 @@ INSERT INTO responsable (id) VALUES (@responsable1_id);
 INSERT INTO personal_rol (personal_id, rol_id) VALUES (@responsable1_id, @responsable_role);
 INSERT INTO personal_rol (personal_id, rol_id) VALUES (@responsable1_id, @empleado_role);
 
--- 5. Insertar Cocinero para Unidad 1 (pass: cocinero)
+-- 5. Insertar Cocinero para Unidad 1 (pass: pass456)
 INSERT INTO personal (nombre, apellido, dni, fecha_nacimiento, fecha_ingreso, email, pass, esta_activo)
-VALUES ('Carlos', 'López', 87654321, '1988-03-20', '2023-02-15', 'cocinero@cocinero',
+VALUES ('Carlos', 'López', 87654321, '1988-03-20', '2023-02-15', 'carlos@email.com',
         '$2a$10$YQsS0ezo6ru/rHt0oPQnfeKuGarsewMPybml7DLmRTMvv6dil0xgq', true);
 SET @cocinero1_id = LAST_INSERT_ID();
 INSERT INTO empleado (id) VALUES (@cocinero1_id);
