@@ -60,11 +60,11 @@ class DatosDePruebaTests {
         assertThat(recibos).satisfiesExactly(
                 primavera -> {
                     assertThat(primavera.getNombreFestival()).isEqualTo("Festival Primavera 2026");
-                    assertThat(primavera.getTotalNeto()).isEqualByComparingTo("315000");
+                    assertThat(primavera.getTotalNeto()).isEqualByComparingTo("248499.93000000");
                 },
                 anterior -> {
                     assertThat(anterior.getNombreFestival()).isEqualTo("Festival Gastronómico 2024");
-                    assertThat(anterior.getTotalNeto()).isEqualByComparingTo("300000");
+                    assertThat(anterior.getTotalNeto()).isEqualByComparingTo("226666.60000000");
                 });
         assertThat(unidadVentaService.obtenerUnidadEnFestivalEnCurso(martinId))
                 .hasValueSatisfying(u -> assertThat(u.getNombreComercial()).isEqualTo("Food Truck La Primavera"));

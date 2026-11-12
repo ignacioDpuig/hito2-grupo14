@@ -21,35 +21,51 @@ import java.math.RoundingMode;
  */
 public record Liquidacion(BigDecimal sueldoBase, BigDecimal plus, String conceptoPlus, long diasFestival) {
 
-    private static final BigDecimal MEDIO_SUELDO = new BigDecimal("0.5");
+    private static final BigDecimal MEDIO = new BigDecimal("0.5");
+    private static final BigDecimal DIAS_BASE = new BigDecimal("30");
+    private static final BigDecimal CIEN = new BigDecimal("100");
 
     public BigDecimal total() {
         return sueldoBase.add(plus).multiply(porcentaje());
     }
 
     public BigDecimal porcentaje() {
+        if (diasFestival <= 0) {
+            return BigDecimal.ZERO;
+        }
         if (diasFestival <= 15) {
-            return MEDIO_SUELDO;
+            return BigDecimal.valueOf(diasFestival)
+                    .multiply(MEDIO)
+                    .divide(DIAS_BASE, 6, RoundingMode.HALF_UP);
         }
         if (diasFestival <= 30) {
-            return BigDecimal.ONE;
+            return BigDecimal.valueOf(diasFestival)
+                    .divide(DIAS_BASE, 6, RoundingMode.HALF_UP);
         }
-        return MEDIO_SUELDO.multiply(BigDecimal.valueOf(bloquesDe15Dias()));
+
+        long diasExtra = diasFestival - 30;
+        BigDecimal diasPagos = BigDecimal.valueOf(30)
+                .add(BigDecimal.valueOf(diasExtra).multiply(MEDIO));
+
+        return diasPagos.divide(DIAS_BASE, 6, RoundingMode.HALF_UP);
     }
 
-    // Lo que se muestra en el recibo para explicar el porcentaje
     public String desglose() {
-        if (diasFestival <= 30) {
-            return diasFestival + " días al " + porcentajeTexto();
+        if (diasFestival <= 15) {
+            return diasFestival + " días al 50%";
         }
-        return diasFestival + " días: " + bloquesDe15Dias() + " bloques de 15 días al 50% c/u";
+        if (diasFestival <= 30) {
+            return diasFestival + " días al 100%";
+        }
+        long diasExtra = diasFestival - 30;
+        return diasFestival + " días: 30 al 100% y " + diasExtra + " al 50%";
     }
 
     public String porcentajeTexto() {
-        return porcentaje().multiply(BigDecimal.valueOf(100)).setScale(0, RoundingMode.HALF_UP).toPlainString() + "%";
-    }
-
-    private long bloquesDe15Dias() {
-        return diasFestival / 15 + 1;
+        BigDecimal porcentaje = porcentaje()
+                .multiply(CIEN)
+                .setScale(2, RoundingMode.HALF_UP)
+                .stripTrailingZeros();
+        return porcentaje.toPlainString() + "%";
     }
 }

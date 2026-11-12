@@ -38,7 +38,7 @@ class ReciboPdfTests {
                 "N° " + recibo.getUnidadId(), "FTSDELSUR1", "Food Truck Sabores del Sur", "Food truck",
                 "Juan García", "12345678", "juan@email.com",
                 "Carlos López", "87654321", "Cocinero",
-                "$ 375.000,00");
+                "$ 283.333,25");
     }
 
     @Test

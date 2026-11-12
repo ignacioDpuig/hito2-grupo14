@@ -138,7 +138,7 @@ public class PDFService {
                 {"Sueldo base", "Fijado por el festival", moneda(r.getSueldoBase())},
                 {r.getConceptoPlus(), r.getCargo(), moneda(r.getPlus())},
                 {"Subtotal", "Sueldo base + plus", moneda(subtotal)},
-                {"Duración del festival", r.getDesglose(), r.getPorcentajeAplicado()},
+                {"Desglose de liquidación", r.getDesglose(), ""},
         };
         for (String[] fila : filas) {
             y -= 24;
